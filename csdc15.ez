@@ -1,0 +1,793 @@
+/* vim:syntax=cpp:filetype=cpp
+*/
+/*_____________________________________________________________
+
+Template for an EASEA evolutionary algorithm for easea v1.0.3
+_______________________________________________________________*/
+
+\User declarations : // This section is copied on top of the output file
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <cstdlib>
+#include <vector>
+#include <stdio.h>
+#include <string.h>
+#include <algorithm>
+
+#define REV_PER_PAP 3
+
+using namespace std;
+
+
+typedef struct{
+	int ID;
+  int isRA;
+	string name;
+	string mail;
+	int nPossRev;
+  int nPenaltyForMoreThan3Papers;
+	vector<int> vWilling;
+	vector<int> vUnWilling;
+	vector<string> vTitleKeywords;
+	vector<string> vAbstKeywords;
+}Reviewer;
+
+typedef struct{
+	int ID;
+	string title ;
+  int nReqRev;
+	vector<string> vAuthors;
+	vector<string> vMails ;
+	vector<string> vTitleKeywords;
+	vector<string> vAbstKeywords;
+}Paper;
+
+ifstream fReviewer,fPaper;
+vector<Paper> papers;
+vector<Reviewer> reviewers;
+vector<int> RA;
+vector<int> RE;
+
+vector<string> MCTP;
+vector<string> MCMP;
+
+vector<string> MCTP_RA;
+vector<string> MCMP_RA;
+
+vector<string> MCTP_RE;
+vector<string> MCMP_RE;
+
+\end
+
+\User functions:
+
+//Read Papers File
+//id|title|NbOfRequiredReviews|Author|mail|TitleKeywords|PaperKeywords,|
+void readPapersFile(){
+  int bNewPaper=1;
+	fPaper.open("papers.txt", ios::in);
+	string line;
+	if (fPaper.is_open()) {
+		Paper p;
+		p.ID = 0;
+		while ( getline (fPaper,line) ) {
+			line.erase(line.length()-2,line.length()-1);
+			char * cstr = new char [line.length()+1];
+			strcpy (cstr, line.c_str());
+			char *szKeywords, *szAbstKeywords;
+			char * s;
+			s = strtok (cstr,"|");
+			if(p.ID!=0 && p.ID != atoi(s)) { 
+				papers.push_back(p); 
+				Paper newP; 
+				p = newP; 
+        bNewPaper=1;
+			}
+			p.ID = atoi(s);
+			s = strtok (NULL, "|"); p.title = s;
+			s = strtok (NULL, "|"); p.nReqRev = atoi(s);
+			s = strtok (NULL, "|"); p.vAuthors.push_back(s);
+			s = strtok (NULL, "|"); p.vMails.push_back(s);
+			s = strtok (NULL, "|"); szKeywords = s;
+			s = strtok (NULL, "|"); szAbstKeywords = s;
+
+			s = strtok (szKeywords,",");
+			while(bNewPaper&&s) {
+				p.vTitleKeywords.push_back(s);
+				s = strtok (NULL, ",");
+      }
+			s = strtok (szAbstKeywords,"|,");
+			while(bNewPaper&&s) {
+				p.vAbstKeywords.push_back(s);
+				s = strtok (NULL, ",|");
+	    }
+      bNewPaper=0;
+    } 
+		papers.push_back(p); //push du dernier papier
+		fPaper.close();
+} }
+
+//Read Reviewers File
+//id|Name|e-mail|MaxRev|vWillingList|UnvWillingList|Keywords|AbstKeywords
+void readReviewersFile(){
+	fReviewer.open("reviewers.txt", ios::in);
+	string line;
+  int k=0;
+
+	if (fReviewer.is_open()) {
+		while (getline(fReviewer,line)) {
+			Reviewer r;
+			line.erase(line.length()-2,line.length()-1);
+			char * cstr = new char [line.length()+1];
+			strcpy (cstr, line.c_str());
+			char *szAbstKeywordsList, *szTitleKeywordsList, *szWillingList, *szUnWillingList;
+			char * s;
+			s = strtok (cstr,"|"); r.ID = atoi(s);        // cout <<"Id : "<<r.ID<<"\n";
+			s = strtok (NULL, "|"); r.mail = s;          // cout <<"mail : "<<r.mail<<"\n";
+			s = strtok (NULL, "|"); r.name = s;           // cout <<"Name : "<<r.name<<"\n";
+			s = strtok (NULL, "|"); r.nPossRev = atoi(s); // cout <<"PossibleReviews : "<<r.nPossRev<<"\n";
+      for (k=0;s[k];k++)
+          ;
+      k++; szWillingList = s+k; for (;s[k]!='|';k++)
+          ; s[k]=0;
+      k++; szUnWillingList=s+k;  for (;s[k]!='|';k++)
+          ; s[k]=0;
+      k++; szTitleKeywordsList=s+k; for (;s[k]!='|';k++)
+          ; s[k]=0;
+      k++; szAbstKeywordsList=s+k;
+
+			s = strtok (szWillingList,",");
+			while(s != NULL) {
+				if(atoi(s)!=0) r.vWilling.push_back(atoi(s));
+				s = strtok (NULL, ",");
+			}
+			s = strtok (szUnWillingList,",");
+			while(s != NULL) {
+				if(atoi(s)!=0) r.vUnWilling.push_back(atoi(s));
+				s = strtok (NULL, ",");
+			}
+			s = strtok (szTitleKeywordsList,",");
+			while(s != NULL) {
+				r.vTitleKeywords.push_back(s);
+				s = strtok (NULL, ",");
+			}
+			s = strtok (szAbstKeywordsList,",");
+			while(s != NULL) {
+				r.vAbstKeywords.push_back(s);
+				s = strtok (NULL, ",");
+			}
+			reviewers.push_back(r);
+		}
+		fReviewer.close();
+}	}
+
+string trim(string& str) {
+    size_t first = str.find_first_not_of(' ');
+    size_t last = str.find_last_not_of(' ');
+    if((int)first < 0)
+    	return "";
+    return str.substr(first, (last-first+1));
+}
+
+int orgcmp(string revOrg, string vAuthorsg) {
+
+	if(revOrg.find("hotmail") != std::string::npos) return 0;
+	if(revOrg.find("gmail") != std::string::npos) return 0;
+	if(revOrg.find("yahoo") != std::string::npos) return 0;
+	if(vAuthorsg.find("hotmail") != std::string::npos) return 0;
+	if(vAuthorsg.find("gmail") != std::string::npos) return 0;
+	if(vAuthorsg.find("yahoo") != std::string::npos) return 0;
+
+	revOrg = trim(revOrg);
+	vAuthorsg = trim(vAuthorsg);
+	if(revOrg.compare(vAuthorsg) == 0) return 1;
+	int pos1 = revOrg.find('@');
+	int pos2 = vAuthorsg.find('@'); 
+	if(pos1 < 0 || pos2 < 0) return 0;
+
+	revOrg =  revOrg.substr(pos1+1);
+	vAuthorsg =  vAuthorsg.substr(pos2+1);
+
+	pos1 = revOrg.find_last_of('.');
+	pos2 = vAuthorsg.find_last_of('.');
+
+	
+	if(revOrg.substr(pos1).compare(vAuthorsg.substr(pos2)) != 0) return 0;
+
+	pos1 = revOrg.substr(0,pos1).find_last_of('.');
+	pos2 = vAuthorsg.substr(0,pos2).find_last_of('.');
+	
+	if(pos1 < 0) pos1 = 0;
+	if(pos2 < 0) pos2 = 0;
+
+	if(revOrg.substr(pos1).compare(vAuthorsg.substr(pos2)) == 0) return 1;
+	
+	return 0;
+}
+
+int is_in_int(vector<int> v, int x) {
+	for(int i = 0; i < v.size(); i++)
+	  if (v.at(i) == x) return 1;
+	return 0;
+}
+
+//Get the lists of the two kinds of reviewers RA and RE 
+void getRA_RE() {
+	int found;
+  string mailvAuthors,mailreviewer;
+  for(int i=0;i<reviewers.size();i++){
+    found=0;
+    for(int j=0;j<papers.size();j++)
+      for (int k=0;k<papers.at(j).vMails.size();k++)
+		    if(trim(reviewers.at(i).mail).compare(trim(papers.at(j).vMails.at(k))) == 0) found=1;
+    if (found==1){
+      RA.push_back(i); 
+      reviewers.at(i).isRA=1;
+    }
+    else {
+      RE.push_back(i); 
+      reviewers.at(i).isRA=2;
+    }
+  }  
+  //cout<<"Nb of external reviewers: "<<RE.size()<<"\n";
+  //for (int k=0;k<RE.size();k++) cout<<reviewers.at(RE.at(k)).mail<<"\n";
+
+  //cout<<"Nb of author - reviewers: "<<RA.size()<<"\n";
+  //or (int k=0;k<RA.size();k++) cout<<reviewers.at(RA.at(k)).mail<<"\n";
+}
+
+int is_in_str(vector<string> v, string str) {
+	for(int i = 0; i < v.size(); i++) if (v.at(i).compare(str) == 0) return 1;
+	return 0;
+}
+
+//Get the lists MCTP and MCMP of Papers  
+void getListMCTP_MCMP_Papers() {
+	int i, j, pos=0;
+	for(i=0; i<papers.size(); i++) {
+		for(j=0; j<papers.at(i).vTitleKeywords.size(); j++) {
+			string keyword = trim(papers.at(i).vTitleKeywords.at(j));
+			pos = keyword.find(' ');
+			if(pos>0) {
+				if(MCTP.empty() || !is_in_str(MCTP, keyword)) MCTP.push_back(keyword);
+			} else
+				if(MCMP.empty() || !is_in_str(MCMP, keyword)) {
+					MCMP.push_back(keyword);
+				}
+} } }
+
+//Get the lists MCTP and MCMP of Reviewers RE and RA 
+void getListMCTP_MCMP_Reviewers() {
+	unsigned int i, j;
+	int pos =0;
+
+	//Case of RE
+	for( i = 0; i < RE.size(); i++) {
+		for(j = 0; j < reviewers.at(RE.at(i)).vAbstKeywords.size(); j++) {
+			;
+			string keyword = trim(reviewers.at(RE.at(i)).vAbstKeywords.at(j));
+			pos = keyword.find(' ');
+			if(pos>0) {
+				if(MCTP_RE.empty() || !is_in_str(MCTP_RE, keyword)) {
+					MCTP_RE.push_back(keyword);
+				}
+			}
+			else
+				if(MCMP_RE.empty() || !is_in_str(MCMP_RE, keyword)) {
+					MCMP_RE.push_back(keyword);
+				}
+		}
+	}
+
+	//Case of RA
+	for( i = 0; i < RA.size(); i++) {
+		for(j = 0; j < reviewers.at(RA.at(i)).vAbstKeywords.size(); j++) {
+			string keyword = trim(reviewers.at(RA.at(i)).vAbstKeywords.at(j));
+			pos = keyword.find(' ');
+			if(pos>0) {
+				if(MCTP_RA.empty() || !is_in_str(MCTP_RA, keyword))
+		  		MCTP_RA.push_back(keyword);
+			}
+			else
+				if(MCMP_RA.empty() || !is_in_str(MCMP_RA, keyword)) 
+					MCMP_RA.push_back(keyword);
+		}
+	}
+
+}
+
+void displayVector(vector<string> v){
+	int i;
+	for(i = 0; i < v.size(); i++)
+	{
+		std::cout << trim(v.at(i));
+		if(i != v.size()-1)
+			std::cout << ", ";
+	}
+}
+void displayPaper(Paper p){
+  std::cout << "Paper     : " << p.ID<< " - "<<trim(p.title)<<"\n";
+	std::cout << "Authors   : ";
+	displayVector(p.vAuthors);
+	std::cout << "\ne-mails   : ";
+	displayVector(p.vMails);
+	std::cout << std::endl;
+}
+\end
+
+\User CUDA:
+//Transfert some variables to GPU here (cudaMalloc, MemCpy)
+\end
+
+\User classes :
+Match { 
+	int reviewer[REV_PER_PAP];
+  //double KwMatchTitleTitle[REV_PER_PAP];
+  //double KwMatchTitleAbst[REV_PER_PAP];
+  double KwMatchAbstTitle[REV_PER_PAP];
+  //double KwMatchAbstAbst[REV_PER_PAP];
+  int OrganisationVerification[REV_PER_PAP];
+  int WillingBonus[REV_PER_PAP];
+  int UnWillingPenalty[REV_PER_PAP];
+  double dScore[REV_PER_PAP];
+}
+GenomeClass { 
+  Match paper[200]; 
+}
+\end
+
+\Before everything else function:
+//cout<<"Before everything else function called "<<endl;
+readPapersFile();
+//cout<<"Number of Papers: "<<papers.size()<<"\n";
+//for (int i=0;i<papers.size();i++){
+    //cout<<papers.at(i).ID<<"|"<<papers.at(i).title<<"|"<<papers.at(i).nReqRev<<"|\nvAuthors --> ";
+//}
+//cout<<"\n\n";
+/*
+  for (int j=0;j<papers.at(i).vAuthors.size();j++)
+    cout<<papers.at(i).vAuthors.at(j)<<",\t";
+  cout<<"\n"<<papers.at(i).vMails.size()<<" e-mails -->";
+  for (int j=0;j<papers.at(i).vMails.size();j++)
+    cout<<papers.at(i).vMails.at(j)<<",\t";
+  cout<<"\n"<<papers.at(i).vTitleKeywords.size()<<" title keywords -->";
+  for (int j=0;j<papers.at(i).vTitleKeywords.size();j++)
+    cout<<papers.at(i).vTitleKeywords.at(j)<<",\t";
+  cout<<"\n"<<papers.at(i).vAbstKeywords.size()<<" abstract keywords -->";
+  for (int j=0;j<papers.at(i).vAbstKeywords.size();j++)
+    cout<<papers.at(i).vAbstKeywords.at(j)<<",\t";
+  cout<<"\n\n";
+*/
+
+readReviewersFile();
+//cout<<"Number of Reviewers: "<<reviewers.size()<<"\n";
+/*
+for (int i=0;i<reviewers.size();i++){
+  cout<<reviewers.at(i).ID<<"|"<<reviewers.at(i).mail<<"|"<<reviewers.at(i).name<<"|"<<reviewers.at(i).nPossRev<<"|\nWilling to review --> ";
+  for (int j=0;j<reviewers.at(i).vWilling.size();j++)
+    cout<<reviewers.at(i).vWilling.at(j)<<",\t";
+  cout<<"\nUnwilling to review -->";
+  for (int j=0;j<reviewers.at(i).vUnWilling.size();j++)
+    cout<<reviewers.at(i).vUnWilling.at(j)<<",\t";
+  cout<<"\n"<<reviewers.at(i).vTitleKeywords.size()<<" title keywords -->";
+  for (int j=0;j<reviewers.at(i).vTitleKeywords.size();j++)
+    cout<<reviewers.at(i).vTitleKeywords.at(j)<<",\t";
+  cout<<"\n"<<reviewers.at(i).vAbstKeywords.size()<<" abstract keywords -->";
+  for (int j=0;j<reviewers.at(i).vAbstKeywords.size();j++)
+    cout<<reviewers.at(i).vAbstKeywords.at(j)<<",\t";
+  cout<<"\n\n";
+}
+*/
+
+getRA_RE();
+getListMCTP_MCMP_Papers();
+getListMCTP_MCMP_Reviewers();
+
+\end
+
+\After everything else function:
+ int i, j;
+ for (i=0;i<papers.size();i++) {	
+	Paper currentPaper = papers.at(i);
+	displayPaper(currentPaper);
+	
+	for(j=0;j<currentPaper.nReqRev;j++){
+		Reviewer currentRev = reviewers.at(bBest->paper[i].reviewer[j]);
+		std::cout << "Reviewer "<<3-currentPaper.nReqRev+j+1<<": " << currentRev.name << ", " << currentRev.mail <<"\n";
+    //cout << "            Penalty > 3 pap  : " << currentRev.nPenaltyForMoreThan3Papers <<"\n";;
+    //cout << "            Penalty same org : " << bBest->paper[i].OrganisationVerification[j] <<"\n";;
+    //cout << "            Penalty unwilling: " << bBest->paper[i].UnWillingPenalty[j] <<"\n";;
+    //cout << "            Paper / Reviewer major keywords correlation: " <<  (bBest->paper[i].KwMatchTitleTitle[j]*100) <<"\%\n";;
+    //cout << "            Paper / Reviewer minor keywords correlation: " <<  (bBest->paper[i].KwMatchAbstAbst[j]*100) <<"\%\n";;
+    //cout << "            Paper major / Review minor kwd correlation : " <<  (bBest->paper[i].KwMatchTitleAbst[j]*100) <<"\%\n";;
+    //cout << "            Paper minor / Review major kwd correlation : " <<  (bBest->paper[i].KwMatchAbstTitle[j]*100) <<"\%\n";;
+    cout << "\tReviewer affinity with paper      : " << bBest->paper[i].KwMatchAbstTitle[j]*100<<"\%";
+    if (bBest->paper[i].WillingBonus[j]) cout << " + 1000pts Bonus for desired paper!";
+    cout <<"\n";;
+    //cout << "            Global Score (with other criteria)         : " << (bBest->paper[i].KwMatchTitleTitle[j]+bBest->paper[i].KwMatchAbstAbst[j]+bBest->paper[i].KwMatchTitleAbst[j]+bBest->paper[i].KwMatchAbstTitle[j])/4*100+bBest->paper[i].WillingBonus[j]*1000 <<"\n";;
+    cout << "\tGlobal Score (with other criteria): " << bBest->paper[i].KwMatchAbstTitle[j]*100+bBest->paper[i].WillingBonus[j]*1000 <<"\n";;
+    //cout << "            Global Score (with other criteria)         : " << (bBest->paper[i].KwMatchTitleAbst[j]+bBest->paper[i].KwMatchAbstTitle[j])/4*100+bBest->paper[i].WillingBonus[j]*1000 <<"\n";;
+    //cout << "Abstract: \n";
+    //for (int k=0;k<currentPaper.vTitleKeywords.size();k++)
+      //cout<<currentPaper.vTitleKeywords.at(k)<<", ";
+    //cout << "-----------\n";
+	}
+     std::cout << std::endl;
+   
+ }
+\end
+
+\At the beginning of each generation function:
+//cout << "At the beginning of each generation function called" << endl;
+\end
+
+\At the end of each generation function:
+//cout << "At the end of each generation function called" << endl;
+\end
+
+\At each generation before reduce function:
+//cout << "At each generation before replacement function called" << endl;
+\end
+
+\GenomeClass::display:
+\end
+
+\GenomeClass::initialiser : // "initializer" is also accepted
+  unsigned int i,j,k,bIdent = 0;
+  for(i = 0; i < papers.size(); i++)
+    for(j = 0;j < REV_PER_PAP; j++){
+      do{ bIdent = 0;
+        Genome.paper[i].reviewer[j] = (int) random(0,reviewers.size()-1);
+        for(k = 0;k < j; k++) if(Genome.paper[i].reviewer[j] == Genome.paper[i].reviewer[k]) bIdent=1;
+      }while(bIdent);
+    }
+\end
+
+\GenomeClass::crossover : 
+  // must create "child" out of "parent1" and "parent2"
+  double dScoreP1a, dScoreP1b, dScoreP2a,dScoreP2b;
+  int pos=random(0,papers.size()-1)+1;
+  dScoreP1a=dScoreP1b=dScoreP2a=dScoreP2b=0;
+
+  for(int i=0;i<pos;i++)
+		for(int j=0;j<REV_PER_PAP;j++){
+      dScoreP1a+=parent1.paper[i].dScore[j];
+      dScoreP2a+=parent2.paper[i].dScore[j];
+    }
+  for(int i=pos;i<papers.size();i++)
+		for(int j=0;j<REV_PER_PAP;j++){
+      dScoreP1b+=parent1.paper[i].dScore[j];
+      dScoreP2b+=parent2.paper[i].dScore[j];
+    }
+    
+  if (dScoreP1a+dScoreP2b>dScoreP1b+dScoreP2a)
+    for(int i=pos+1;i<papers.size();i++)
+      for(int j=0;j<REV_PER_PAP;j++)
+        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
+  else {
+    for(int i=0;i<pos;i++)
+      for(int j=0;j<REV_PER_PAP;j++)
+        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
+    for(int i=pos;i<papers.size();i++)
+      for(int j=0;j<REV_PER_PAP;j++)
+        child.paper[i].reviewer[j]=parent1.paper[i].reviewer[j];
+  } 
+\end
+
+\GenomeClass::mutator : // Must return the number of mutations
+  float fMutProbPerGene=((currentGeneration%40)/40.0)*(papers.size()*.005)+.1;//.235;
+//  float fMutProbPerGene=.1;//.235;
+//cout<<"fMut = "<<fMutProbPerGene<<", ";
+  unsigned int i,j,k,eqID,nbMutations=0; 
+	for (i=0;i<papers.size();i++)
+		if (tossCoin(fMutProbPerGene)){
+			for(j=0;j<REV_PER_PAP;j++)
+				do {
+					eqID=0;
+					Genome.paper[i].reviewer[j]=(int) random(0,reviewers.size()-1);
+					for (k=0;k<j;k++) if (Genome.paper[i].reviewer[k]==Genome.paper[i].reviewer[j]) eqID=1;
+				}while (eqID);
+			nbMutations++;
+		}
+    //cout<<"NbMut="<<nbMutations<<", ";
+	return nbMutations;
+\end
+
+\GenomeClass::evaluator : // Returns the score as a real value
+  double dEval=0;
+  double dOrganisationVerificationCoeff=-10000,dWillingBonusCoeff=1000,dUnWillingPenalty=-1000;
+  double dPreviousEval,dHammingCorrelation=0;
+  int nSmallerVectorSize,nMatch,nHCWeight=0;
+ 	int nbPapiersPourReviewer[reviewers.size()];
+  Paper currentPaper;
+  Reviewer currentRev;
+	for (int i=0;i<reviewers.size();nbPapiersPourReviewer[i++]=0);
+	for (int i=0;i<papers.size();i++){ // for all papers	
+		currentPaper = papers.at(i);
+    // vMails processing 
+    for(int j=0;j<currentPaper.vMails.size();j++) // for all current paper author mails
+      for(int k=0;k<currentPaper.nReqRev;k++) // for all paper reviewers, initialisation
+        Genome.paper[i].dScore[k]=Genome.paper[i].OrganisationVerification[k]=Genome.paper[i].WillingBonus[k]=Genome.paper[i].UnWillingPenalty[k]=0;
+
+    for(int j=0;j<currentPaper.vMails.size();j++) // for all current paper author mails
+      for(int k=0;k<currentPaper.nReqRev;k++){ // for all paper reviewers
+			  currentRev = reviewers.at(Genome.paper[i].reviewer[k]);
+			  if(!((currentRev.mail).compare(currentPaper.vMails.at(j)))){
+          dEval-=1000000;
+          Genome.paper[i].OrganisationVerification[k]= -1000000;
+        } else if(orgcmp(currentRev.mail,currentPaper.vMails.at(j))){
+          dEval-=100000;
+          Genome.paper[i].OrganisationVerification[k]= -100000;
+        }
+      }
+
+    // vWilling processing 
+    for(int j=0;j<currentPaper.nReqRev;j++){ // for all paper reviewers
+			currentRev = reviewers.at(Genome.paper[i].reviewer[j]);
+      for(int k=0;k<currentRev.vWilling.size();k++){ // for all wished papers 
+        dPreviousEval=dEval;
+        if (currentRev.vWilling.at(k)==currentPaper.ID) {
+          Genome.paper[i].WillingBonus[k]++;
+          dEval+= 1000;
+        }
+      }
+    }
+
+    // vUnWilling processing 
+    for(int j=0;j<currentPaper.nReqRev;j++){ // for all paper reviewers
+			currentRev = reviewers.at(Genome.paper[i].reviewer[j]);
+      for(int k=0;k<currentRev.vUnWilling.size();k++){ // for all wished papers 
+        if (currentRev.vUnWilling.at(k)==currentPaper.ID){
+//          cout<<"Rev Name : "<<currentRev.name<<" Paper Title : "<<currentPaper.title<<"\n";
+//          getchar();
+          dEval-=100000;
+          Genome.paper[i].UnWillingPenalty[k]++;
+        }
+      }
+    }
+
+    for(int k=0;k<currentPaper.nReqRev;k++){ // for all paper reviewers
+//Genome.paper[i].KwMatchTitleTitle[k]=Genome.paper[i].KwMatchTitleAbst[k]=Genome.paper[i].KwMatchAbstTitle[k]=Genome.paper[i].KwMatchAbstAbst[k]=0; Genome.paper[i].KwMatchTitleAbst[k]=
+      Genome.paper[i].KwMatchAbstTitle[k]=0;
+      if (Genome.paper[i].OrganisationVerification[k]<0) continue;
+      currentRev = reviewers.at(Genome.paper[i].reviewer[k]);
+      if (currentPaper.vAbstKeywords.size()<currentRev.vTitleKeywords.size())
+        nSmallerVectorSize=currentPaper.vAbstKeywords.size();
+      else 
+        nSmallerVectorSize=currentRev.vTitleKeywords.size();
+      nMatch=0;
+		  for (int l=0;l<currentRev.vTitleKeywords.size();l++) // for all reviewer's Title keywords
+        for(int j=0;j<currentPaper.vAbstKeywords.size();j++){ // for all Abst keywords
+					if (currentRev.vTitleKeywords.at(l).compare(currentPaper.vAbstKeywords.at(j))==0){
+            nMatch++;
+            break;
+          }
+        dHammingCorrelation=(dHammingCorrelation*nHCWeight+((double)nMatch/(double)nSmallerVectorSize))/((double)nHCWeight+1);
+        Genome.paper[i].KwMatchAbstTitle[k]=((double)nMatch/(double)nSmallerVectorSize);
+        nHCWeight++;
+      }
+    }
+
+    /*
+    for(int k=0;k<currentPaper.nReqRev;k++){ // for all paper reviewers
+      if (Genome.paper[i].OrganisationVerification[k]<0) continue;
+			currentRev = reviewers.at(Genome.paper[i].reviewer[k]);
+      if (currentPaper.vTitleKeywords.size()<currentRev.vAbstKeywords.size())
+        nSmallerVectorSize=currentPaper.vTitleKeywords.size();
+      else 
+        nSmallerVectorSize=currentRev.vAbstKeywords.size();
+      nMatch=0;
+      for(int j=0;j<currentPaper.vTitleKeywords.size();j++){ // for all Title keywords
+		    for (int l=0;l<currentRev.vAbstKeywords.size();l++) // for all reviewer's Abst keywords
+					if (currentRev.vAbstKeywords.at(l).compare(currentPaper.vTitleKeywords.at(j))==0){
+            nMatch++;
+            break;
+          }
+        dHammingCorrelation=(dHammingCorrelation*nHCWeight+((double)nMatch/(double)nSmallerVectorSize))/((double)nHCWeight+1);
+        Genome.paper[i].KwMatchTitleAbst[k]=((double)nMatch/(double)nSmallerVectorSize);
+        nHCWeight++;
+      }
+    }
+
+    for(int k=0;k<currentPaper.nReqRev;k++){ // for all paper reviewers
+      if (Genome.paper[i].OrganisationVerification[k]<0) continue;
+			currentRev = reviewers.at(Genome.paper[i].reviewer[k]);
+      nMatch=0;
+      if (currentPaper.vTitleKeywords.size()<currentRev.vTitleKeywords.size())
+        nSmallerVectorSize=currentPaper.vTitleKeywords.size();
+      else 
+        nSmallerVectorSize=currentRev.vTitleKeywords.size();
+      for(int j=0;j<currentPaper.vTitleKeywords.size();j++){ // for all Title keywords
+        if (Genome.paper[i].OrganisationVerification[k]<0) continue;
+		    for (int l=0;l<currentRev.vTitleKeywords.size();l++) // for all reviewer's Title keywords
+					if (currentRev.vTitleKeywords.at(l).compare(currentPaper.vTitleKeywords.at(j))==0){
+            nMatch++;
+            break;
+          }
+        dHammingCorrelation=(dHammingCorrelation*nHCWeight+((double)nMatch/(double)nSmallerVectorSize))/((double)nHCWeight+1);
+        Genome.paper[i].KwMatchTitleTitle[k]=((double)nMatch/(double)nSmallerVectorSize);
+        nHCWeight++;
+      }
+    }
+
+    for(int k=0;k<currentPaper.nReqRev;k++){ // for all paper reviewers
+      if (Genome.paper[i].OrganisationVerification[k]<0) continue;
+      currentRev = reviewers.at(Genome.paper[i].reviewer[k]);
+      if (currentPaper.vAbstKeywords.size()<currentRev.vAbstKeywords.size())
+        nSmallerVectorSize=currentPaper.vAbstKeywords.size();
+      else 
+        nSmallerVectorSize=currentRev.vAbstKeywords.size();
+      nMatch=0;
+      for(int j=0;j<currentPaper.vAbstKeywords.size();j++){ // for all Abst keywords
+		    for (int l=0;l<currentRev.vAbstKeywords.size();l++) // for all reviewer's Abst keywords
+					if (currentRev.vAbstKeywords.at(l).compare(currentPaper.vAbstKeywords.at(j))==0){
+            nMatch++;
+            break;
+          }
+        dHammingCorrelation=(dHammingCorrelation*nHCWeight+((double)nMatch/(double)nSmallerVectorSize))/((double)nHCWeight+1);
+        Genome.paper[i].KwMatchAbstAbst[k]=((double)nMatch/(double)nSmallerVectorSize);
+        nHCWeight++;
+      }
+    }
+*/
+
+	  dEval+=dHammingCorrelation*1000;		
+
+    for(int j=0;j<currentPaper.nReqRev;j++) // for all paper reviewers
+      nbPapiersPourReviewer[Genome.paper[i].reviewer[j]]++;
+	}
+
+	for (int k=0;k<reviewers.size();k++){
+    reviewers.at(k).nPenaltyForMoreThan3Papers=0;
+    if (nbPapiersPourReviewer[k]>reviewers.at(k).nPossRev){
+      reviewers.at(k).nPenaltyForMoreThan3Papers=nbPapiersPourReviewer[k]-reviewers.at(k).nPossRev;
+      dEval-=10000*(nbPapiersPourReviewer[k]-reviewers.at(k).nPossRev);
+    }
+  }
+	for (int i=0;i<papers.size();i++){ // for all papers	
+		currentPaper = papers.at(i);
+    for(int j=0;j<currentPaper.nReqRev;j++){ // for all paper reviewers
+      //cout<<"\n Entering Scoring\nScore1="<<Genome.paper[i].dScore[j]<<", dHammingCorrelation*1000="<<dHammingCorrelation*1000<<"\n";
+      Genome.paper[i].dScore[j]=Genome.paper[i].KwMatchAbstTitle[j]*1000;
+                                //(Genome.paper[i].KwMatchTitleTitle[j]+
+                                 //Genome.paper[i].KwMatchTitleAbst[j]+
+                                 //Genome.paper[i].KwMatchAbstAbst[j]+
+                                 //Genome.paper[i].KwMatchAbstTitle[j])/4*1000;
+      //cout<<"Score2="<<Genome.paper[i].dScore[j]<<"\n";
+      Genome.paper[i].dScore[j]+=Genome.paper[i].OrganisationVerification[j]*dOrganisationVerificationCoeff;
+      //cout<<"Score3="<<Genome.paper[i].dScore[j]<<"\n";
+      Genome.paper[i].dScore[j]+=Genome.paper[i].WillingBonus[j]*dWillingBonusCoeff;
+      //cout<<"Score4="<<Genome.paper[i].dScore[j]<<"\n";
+      Genome.paper[i].dScore[j]+=Genome.paper[i].UnWillingPenalty[j]*dUnWillingPenalty;
+      //cout<<"Score5="<<Genome.paper[i].dScore[j]<<"\n";
+    }
+
+    for(int j=0;j<currentPaper.nReqRev;j++){ // for all paper reviewers
+      if (Genome.paper[i].KwMatchAbstTitle[j]<.1)
+        Genome.paper[i].dScore[0] += -15+150*Genome.paper[i].KwMatchAbstTitle[j];
+      if (Genome.paper[i].KwMatchAbstTitle[j]>.4)
+        Genome.paper[i].dScore[0] -= (Genome.paper[i].KwMatchAbstTitle[j]-0.4)*42;
+    }
+
+      /*
+      if ((Genome.paper[i].KwMatchAbstTitle[j]<.10)||(Genome.paper[i].KwMatchAbstTitle[j]>.40)){
+        Genome.paper[i].dScore[0]-=20;
+        dEval-=20;
+      }
+      if (Genome.paper[i].KwMatchAbstTitle[j]==0){
+        Genome.paper[i].dScore[0]-=5;
+        dEval-=5;
+      }
+      */
+      
+
+    if (currentPaper.nReqRev>1){
+      //cout<<"nReqRev>1\n";
+//      if (Genome.paper[i].KwMatchTitleTitle[0]==Genome.paper[i].KwMatchTitleTitle[1]){
+//          Genome.paper[i].dScore[0]-=100;
+//          dEval-=100;
+//          //cout<<"Penalty, ";
+//      }
+//      if (Genome.paper[i].KwMatchTitleAbst[0]==Genome.paper[i].KwMatchTitleAbst[1]){
+//          Genome.paper[i].dScore[0]-=100;
+//          dEval-=100;
+//          //cout<<"Penalty, ";
+//      }
+      if (Genome.paper[i].KwMatchAbstTitle[0]==Genome.paper[i].KwMatchAbstTitle[1]){
+          Genome.paper[i].dScore[0]-=100;
+          dEval-=100;
+          //cout<<"Penalty, ";
+      }
+//      if (Genome.paper[i].KwMatchAbstAbst[0]==Genome.paper[i].KwMatchAbstAbst[1]){
+//          Genome.paper[i].dScore[0]-=100;
+//          dEval-=100;
+//          //cout<<"Penalty, ";
+//      }
+    }
+    if (currentPaper.nReqRev>2){
+      //cout<<"nReqRev>2\n";
+//      if (Genome.paper[i].KwMatchTitleTitle[0]==Genome.paper[i].KwMatchTitleTitle[2]){
+//          Genome.paper[i].dScore[2]-=100;
+//          dEval-=100;
+//          //cout<<"Penalty, ";
+//      }
+//      if (Genome.paper[i].KwMatchTitleAbst[0]==Genome.paper[i].KwMatchTitleAbst[2]){
+//          Genome.paper[i].dScore[2]-=100;
+//          dEval-=100;
+//          //cout<<"Penalty, ";
+//      }
+      if (Genome.paper[i].KwMatchAbstTitle[0]==Genome.paper[i].KwMatchAbstTitle[2]){
+          Genome.paper[i].dScore[2]-=100;
+          dEval-=100;
+          //cout<<"Penalty, ";
+      }
+//      if (Genome.paper[i].KwMatchAbstAbst[0]==Genome.paper[i].KwMatchAbstAbst[2]){
+//          Genome.paper[i].dScore[2]-=100;
+//          dEval-=100;
+//          //cout<<"Penalty, ";
+//      }
+//      if (Genome.paper[i].KwMatchTitleTitle[1]==Genome.paper[i].KwMatchTitleTitle[2]){
+//          Genome.paper[i].dScore[1]-=100;
+//          dEval-=100;
+//          //cout<<"Penalty, ";
+//      }
+//      if (Genome.paper[i].KwMatchTitleAbst[1]==Genome.paper[i].KwMatchTitleAbst[2]){
+//          Genome.paper[i].dScore[1]-=100;
+//          dEval-=100;
+//          //cout<<"Penalty, ";
+//      }
+      if (Genome.paper[i].KwMatchAbstTitle[1]==Genome.paper[i].KwMatchAbstTitle[2]){
+          Genome.paper[i].dScore[1]-=100;
+          dEval-=100;
+          //cout<<"Penalty, ";
+      }
+//      if (Genome.paper[i].KwMatchAbstAbst[1]==Genome.paper[i].KwMatchAbstAbst[2]){
+//          Genome.paper[i].dScore[1]-=100;
+//          dEval-=100;
+//          //cout<<"Penalty, ";
+//      }
+    }
+  }
+  
+  if (dEval<200) return dEval/10000;
+	return dEval;
+
+\end
+
+\User Makefile options: 
+\end
+
+\Default run parameters :        // Please let the parameters appear in this order
+  Number of generations : 300    // NB_GEN
+  Time limit: 0 			           // In seconds, 0 to deactivate
+  Population size : 64		   //POP_SIZE
+  Offspring size : 64// or a xx%
+  Mutation probability : 0.8       // MUT_PROB
+  Crossover probability : 1      // XOVER_PROB
+  Evaluator goal : maximise      // maximise
+  Selection operator: Tournament 0.6
+  Surviving parents: 100%        // Percentage or absolute  
+  Surviving offspring: 100%      // Percentage or absolute  d
+  Reduce parents operator: Tournament 2
+  Reduce offspring operator: Tournament 2
+  Final reduce operator: Tournament 2
+
+  Elitism: strong			           // Weak or Strong
+  Elite: 1
+  Print stats: true				       // Default: 1
+  Generate csv stats file:true			
+  Generate gnuplot script:false
+  Generate R script:false
+  Plot stats:true				         // Default: 0
+
+  Remote island model: true
+  IP file: ip.txt 			         // List of IP:PORT of islands to send individuals to
+  Migration probability: 0.3    // Probability of sending an individual per generation
+  Server port : 2929
+
+  Save population: false
+  Start from file:false
+\end
+
