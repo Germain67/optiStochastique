@@ -1,4 +1,3 @@
-//\User declarations : // This section is copied on top of the output file
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -30,29 +29,8 @@ typedef struct{
   struct tm* startDate;
 } Paper;
 
-/*typedef struct{
-  int ID;
-  int ID_Track;
-  //vector<int> papers;
-  struct tm* startDate;
-  //bool isPleniere;
-} Session;*/
-
-/* typedef struct{
-  int ID;
-  vector<int> sessions;
-} Track; */
-
-//
 ifstream fPaper;
-//,fSession, fTrack;
 vector<Paper> papers;
-//vector<Session> sessions;
-//vector<Track> tracks;
-
-//\end
-
-//\User functions:
 
 template<typename Out>
 void split(const std::string &s, char delim, Out result) {
@@ -64,7 +42,6 @@ void split(const std::string &s, char delim, Out result) {
     }
 }
 
-
 std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> elems;
     split(s, delim, std::back_inserter(elems));
@@ -74,17 +51,16 @@ std::vector<std::string> split(const std::string &s, char delim) {
 std::vector<Interval> strToIntervals(std::string str)
 {
   vector<Interval> res;
-  if(str == "*"){
-    return res;
-  }
-  std::vector<std::string> horaires = split(str, '[');
-  for(int i = 1; i<horaires.size() ; i++)
-  {
-    Interval cur_interval;
-    std::vector<std::string> vals = split(horaires[i], ',');
-    cur_interval.startHour = atoi(vals[0].c_str());
-    cur_interval.endHour = atoi(split(vals[1], ']')[0].c_str());
-    res.push_back(cur_interval);
+  if(str != "*"){
+    std::vector<std::string> horaires = split(str, '[');
+    for(int i = 1; i<horaires.size() ; i++)
+    {
+      Interval cur_interval;
+      std::vector<std::string> vals = split(horaires[i], ',');
+      cur_interval.startHour = atoi(vals[0].c_str());
+      cur_interval.endHour = atoi(split(vals[1], ']')[0].c_str());
+      res.push_back(cur_interval);
+    }
   }
   return res;
 }
@@ -113,7 +89,7 @@ std::vector<Paper> readPapers()
       p.dispoDay1 = strToIntervals(lineElems[5]);
       p.dispoDay2 = strToIntervals(lineElems[6]);
       p.dispoDay3 = strToIntervals(lineElems[7]);
-      p.startDate = NULL;
+      //p.startDate = NULL;
       papers.push_back(p);
   }
   return papers;
