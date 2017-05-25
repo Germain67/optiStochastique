@@ -20,11 +20,10 @@ typedef struct{
 
 typedef struct{
   int ID;
-  int ID_Session;
   int ID_Track;
+  int ID_Session;
   int duration;
-  int numPassageInSession;
-  int fuseauHoraire;
+  double fuseauHoraire;
   vector<Interval> dispoDay1;
   vector<Interval> dispoDay2;
   vector<Interval> dispoDay3;
@@ -48,7 +47,7 @@ typedef struct{
 ifstream fPaper;
 //,fSession, fTrack;
 vector<Paper> papers;
-vector<Session> sessions;
+//vector<Session> sessions;
 //vector<Track> tracks;
 
 //\end
@@ -75,6 +74,9 @@ std::vector<std::string> split(const std::string &s, char delim) {
 std::vector<Interval> strToIntervals(std::string str)
 {
   vector<Interval> res;
+  if(str == "*"){
+    return res;
+  }
   std::vector<std::string> day = split(str, '[');
   for(int i = 0; i<day.size() ; i++)
   {
@@ -97,13 +99,21 @@ std::vector<Paper> readPapers()
       std::vector<std::string> lineElems = split(line, '|');
       Paper p;
       p.ID = atoi(lineElems[0].c_str());
-      p.ID_Session = atoi(lineElems[1].c_str());
-      p.duration = atoi(lineElems[2].c_str());
-      p.numPassageInSession = atoi(lineElems[3].c_str());
-      p.fuseauHoraire = atoi(lineElems[4].c_str());
+      p.ID_Track = atoi(lineElems[1].c_str());
+      p.ID_Session = atoi(lineElems[2].c_str());
+      p.duration = atoi(lineElems[3].c_str());
+      if(lineElems[4] == "*")
+      {
+        p.fuseauHoraire = 0;
+      }
+      else
+      {
+        p.fuseauHoraire = atof(lineElems[4].c_str());
+      }
       p.dispoDay1 = strToIntervals(lineElems[5]);
       p.dispoDay2 = strToIntervals(lineElems[6]);
       p.dispoDay3 = strToIntervals(lineElems[7]);
+      p.startDate = NULL;
       papers.push_back(p);
   }
   return papers;
@@ -111,6 +121,6 @@ std::vector<Paper> readPapers()
 
 int main()
 {
-  readPapers();
+  std::vector<Paper> papers = readPapers();
   return 0;
 }
