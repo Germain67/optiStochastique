@@ -60,6 +60,24 @@ public class Main {
 		return res;
 	}
 	
+	private static String checkIntervalle(String raw)
+	{
+		String res = raw;
+		if(raw.contains(":"))
+		{
+			if(raw.contains("["))
+			{
+				String[] splited = raw.split(":");
+				String tempmin = splited[1].substring(0, splited.length-1);
+				String tempheure = splited[0].substring(1, splited[0].length());
+				int hour = Integer.parseInt(tempheure);
+				int minute = Integer.parseInt(tempmin);
+				res = "[" + (hour + minute/60.0) + "]";
+			}
+		}
+		return res;
+	}
+	
 	public static ArrayList<String> Lignes(String sheet, TypeObject to)
 	{
 		ArrayList<String> res = new ArrayList<String>();
@@ -128,7 +146,7 @@ public class Main {
 					{
 						if(cell.getCellTypeEnum() == CellType.STRING)
 							if(idcolonne != 32)
-								res = res + cell.getStringCellValue()+"|";
+								res = res + checkIntervalle(cell.getStringCellValue())+"|";
 							else
 								res = res + parseIntAndFloat(cell.getStringCellValue()) + "|";
 						else if(idcolonne == 26 && res.length()>0)
