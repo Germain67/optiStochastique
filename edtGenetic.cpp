@@ -77,11 +77,11 @@ std::vector<Interval> strToIntervals(std::string str)
   if(str == "*"){
     return res;
   }
-  std::vector<std::string> day = split(str, '[');
-  for(int i = 0; i<day.size() ; i++)
+  std::vector<std::string> horaires = split(str, '[');
+  for(int i = 1; i<horaires.size() ; i++)
   {
     Interval cur_interval;
-    std::vector<std::string> vals = split(day[i], ',');
+    std::vector<std::string> vals = split(horaires[i], ',');
     cur_interval.startHour = atoi(vals[0].c_str());
     cur_interval.endHour = atoi(split(vals[1], ']')[0].c_str());
     res.push_back(cur_interval);
