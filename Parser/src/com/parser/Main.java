@@ -1,9 +1,181 @@
 package com.parser;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import org.apache.poi.*;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.format.CellFormatType;
+import org.apache.poi.ss.formula.FormulaType;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Main {
 
+	private static XSSFWorkbook wb;
+	
+	private enum TypeObject { Papers, Session, Track};
+	
+	private static String GetCelluleValeur(String sheet ,int ligne ,int colonne, XSSFWorkbook wbf)
+	{
+		String res = "";
+		//System.out.println("Sheet : " + sheet);
+		XSSFSheet feuille =  wbf.getSheet(sheet);
+		Row row = feuille.getRow(ligne);
+		if (row == null) {
+			row = feuille.createRow(ligne);
+		}
+		Cell cell = null;
+		cell = row.getCell((short) colonne);
+		res = cell.getStringCellValue();
+		
+		return res;
+	}
+	
+	public static ArrayList<String> Lignes(String sheet, TypeObject to)
+	{
+		ArrayList<String> res = new ArrayList<String>();
+		System.out.println("Onglet : "+sheet);
+		XSSFSheet feuille =  wb.getSheet(sheet);
+		Row row = null;
+		String temp;
+		int i = 0;
+		for (Iterator rowIt = feuille.rowIterator(); rowIt.hasNext();) 
+		{
+			if(i!=0)
+			{
+				row = (Row) rowIt.next();
+				temp = (Colonnes(sheet, i, to));
+				if(temp.length()>0)
+				{
+					System.out.println(temp);
+					System.out.println(temp.charAt(0));
+					if (temp.charAt(0)!='-')
+						res.add(temp);
+				}
+				else
+					break;
+			}
+			i++;
+		}
+		return res;
+	}
+	
+	public static String Colonnes(String sheet, int ligne, TypeObject to)
+	{
+		String res = "";
+		XSSFSheet feuille =  wb.getSheet(sheet);
+		Row row = feuille.getRow(ligne);
+		Cell cell = null;
+		boolean continuer = true;
+		try
+		{
+			if(row!=null)
+			{
+				for (Iterator cellIt = row.cellIterator(); cellIt.hasNext();) 
+				{
+					cell = (Cell) cellIt.next();
+					int idcolonne = cell.getColumnIndex();
+					switch (to) {
+						case Papers : 
+							if(idcolonne != 0 && idcolonne != 4 && idcolonne != 26
+								&& idcolonne != 31 && idcolonne != 32 && idcolonne != 33
+								&& idcolonne != 34 && idcolonne != 35)
+								continuer = false;
+							break;
+						default :
+							break;
+					}
+					if(continuer)
+					{
+						if(cell.getCellTypeEnum() == CellType.STRING)
+							res = res + cell.getStringCellValue()+"|";
+						else if(cell.getCellTypeEnum()== CellType.NUMERIC)
+							res = res + cell.getNumericCellValue() +"|";
+						else if(cell.getCellTypeEnum()==CellType.BLANK)
+							res = res;
+						else if(cell.getCellTypeEnum()==CellType.FORMULA)
+							if(cell.getCachedFormulaResultTypeEnum()== CellType.NUMERIC)
+								res = res + cell.getNumericCellValue() +"|";
+							else
+								res = res + cell.getStringCellValue()+"|";
+						else
+							System.out.println(cell.getCellTypeEnum().toString());
+					}
+					continuer = true;
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		//System.out.println("res : "+res);
+		if(res.length()>0)
+			return res.substring(0, res.length()-1);
+		else
+			return "";
+	}
+	
+	
     public static void main(String[] args) {
-	    // write your code here
+    	String dir = System.getProperty("user.dir")+ File.separator;
+    	String filepath = dir +"files"+File.separator+"Sujet_M1ILC_2017.xlsx";
+		String onglet = "";
+		XSSFSheet sheet;
+		ArrayList<String> papers = new ArrayList<String>();
+		System.out.println(filepath);
+    	
+    	try 
+    	{
+			File excel = new File(filepath);
+			 wb = (XSSFWorkbook) WorkbookFactory.create(excel);
+			 for(int i = 0; i < wb.getNumberOfSheets() ; i++)
+			 {
+				 sheet = wb.getSheetAt(i);
+				 onglet = sheet.getSheetName();
+				 if(onglet.equals("accepted papers"))
+				 {
+					 
+				 }
+				 else if(onglet.equals("All e-Tracks"))
+				 {
+					 
+				 }
+				 else
+				 {
+					 papers.addAll(Lignes(onglet, TypeObject.Papers));
+				 }
+				 
+			 }
+			 Path file = Paths.get(dir + "papers.txt");
+			 System.out.println(file);
+			 Files.write(file, papers, Charset.forName("UTF-8"));
+		} 
+    	catch (EncryptedDocumentException e) 
+    	{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+    	catch (InvalidFormatException e) 
+    	{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+    	catch (IOException e) 
+    	{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 }
