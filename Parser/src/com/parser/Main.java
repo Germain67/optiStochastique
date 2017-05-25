@@ -67,12 +67,19 @@ public class Main {
 		{
 			if(raw.contains("["))
 			{
-				String[] splited = raw.split(":");
-				String tempmin = splited[1].substring(0, splited.length-1);
-				String tempheure = splited[0].substring(1, splited[0].length());
-				int hour = Integer.parseInt(tempheure);
-				int minute = Integer.parseInt(tempmin);
-				res = "[" + (hour + minute/60) + "]";
+				String[] splited = raw.split(",");
+				String[] left = splited[0].split(":");
+				String[] right = splited[1].split(":");
+				
+				String tempminl = left[1].substring(0, left[1].length());
+				String tempheurel = left[0].substring(1, left[0].length());
+				String tempminr = right[1].substring(0, right[1].length()-1);
+				String tempheurer = right[0].substring(0, right[0].length());
+				int hourl = Integer.parseInt(tempheurel);
+				int minutel = Integer.parseInt(tempminl);
+				int hourr = Integer.parseInt(tempheurer);
+				int minuter = Integer.parseInt(tempminr);
+				res = "[" + (hourl + minutel/60.0)+","+ (hourr + minuter/60.0)  + "]";
 			}
 		}
 		return res;
