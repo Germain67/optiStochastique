@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.poi.*;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -38,6 +40,16 @@ public class Main {
 		cell = row.getCell((short) colonne);
 		res = cell.getStringCellValue();
 		
+		return res;
+	}
+	
+	private static String parseIntAndFloat(String raw)
+	{
+		String res = "";
+		Pattern p = Pattern.compile("(\\+|-)?([0-9]+(.?[0-9])+)");
+		Matcher m = p.matcher(raw);
+		if(m.find())
+			res = m.group();
 		return res;
 	}
 	
@@ -108,9 +120,12 @@ public class Main {
 					if(continuer)
 					{
 						if(cell.getCellTypeEnum() == CellType.STRING)
-							res = res + cell.getStringCellValue()+"|";
+							if(idcolonne != 32)
+								res = res + cell.getStringCellValue()+"|";
+							else
+								res = res + parseIntAndFloat(cell.getStringCellValue());
 						else if(cell.getCellTypeEnum()== CellType.NUMERIC)
-							res = res + cell.getNumericCellValue() +"|";
+							res = res + (int)cell.getNumericCellValue() +"|";
 						else if(cell.getCellTypeEnum()==CellType.BLANK)
 							if(res.length()>0)
 								res = res + "*|";
@@ -118,7 +133,7 @@ public class Main {
 							//res = res + "|";
 						else if(cell.getCellTypeEnum()==CellType.FORMULA)
 							if(cell.getCachedFormulaResultTypeEnum()== CellType.NUMERIC)
-								res = res + cell.getNumericCellValue() +"|";
+								res = res + (int)cell.getNumericCellValue() +"|";
 							else
 								res = res + cell.getStringCellValue()+"|";
 						else
