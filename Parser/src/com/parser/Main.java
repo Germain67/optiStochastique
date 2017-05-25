@@ -57,8 +57,8 @@ public class Main {
 				temp = (Colonnes(sheet, i, to));
 				if(temp.length()>0)
 				{
-					System.out.println(temp);
-					System.out.println(temp.charAt(0));
+					//System.out.println(temp);
+					//System.out.println(temp.charAt(0));
 					if (temp.charAt(0)!='-')
 						res.add(temp);
 				}
@@ -86,9 +86,19 @@ public class Main {
 					cell = (Cell) cellIt.next();
 					int idcolonne = cell.getColumnIndex();
 					switch (to) {
+					/*
+					 * 0  ID
+					 * 2  Track ID
+					 * 4  Session ID
+					 * 26 Duration
+					 * 32 Fuseau
+					 * 32 Dispo 1
+					 * 34 Dispo 2
+					 * 35 Dispo 3
+					 */
 						case Papers : 
-							if(idcolonne != 0 && idcolonne != 4 && idcolonne != 26
-								&& idcolonne != 31 && idcolonne != 32 && idcolonne != 33
+							if(idcolonne != 0 && idcolonne != 2 && idcolonne != 4
+								&& idcolonne != 26 && idcolonne != 32 && idcolonne != 33
 								&& idcolonne != 34 && idcolonne != 35)
 								continuer = false;
 							break;
@@ -102,7 +112,10 @@ public class Main {
 						else if(cell.getCellTypeEnum()== CellType.NUMERIC)
 							res = res + cell.getNumericCellValue() +"|";
 						else if(cell.getCellTypeEnum()==CellType.BLANK)
-							res = res;
+							if(res.length()>0)
+								res = res + "*|";
+						//else if(cell.getCellTypeEnum()==CellType._NONE)
+							//res = res + "|";
 						else if(cell.getCellTypeEnum()==CellType.FORMULA)
 							if(cell.getCachedFormulaResultTypeEnum()== CellType.NUMERIC)
 								res = res + cell.getNumericCellValue() +"|";
