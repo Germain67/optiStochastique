@@ -56,7 +56,12 @@ public class Main {
 				row = (Row) rowIt.next();
 				temp = (Colonnes(sheet, i, to));
 				if(temp.length()>0)
-					res.add(temp);
+				{
+					System.out.println(temp);
+					System.out.println(temp.charAt(0));
+					if (temp.charAt(0)!='-')
+						res.add(temp);
+				}
 				else
 					break;
 			}
