@@ -91,7 +91,7 @@ std::vector<Interval> strToIntervals(std::string str)
 
 std::vector<Paper> readPapers()
 {
-  std::ifstream file("papers.txt");
+  std::ifstream file("Parser/papers.txt");
   std::vector<Paper> papers;
   std::string line;
   while (std::getline(file, line))

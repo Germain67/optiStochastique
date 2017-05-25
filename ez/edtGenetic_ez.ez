@@ -74,7 +74,7 @@ std::vector<Interval> strToIntervals(std::string str)
 
 void readPapers()
 {
-  std::ifstream file("../papers.txt");
+  std::ifstream file("../Parser/papers.txt");
   std::string line;
   while (std::getline(file, line))
   {
@@ -126,7 +126,7 @@ GenomeClass {
 \end
 
 \Before everything else function:
-  //readPapers();
+  readPapers();
 \end
 
 \After everything else function:
