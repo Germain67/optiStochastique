@@ -50,6 +50,13 @@ public class Main {
 		Matcher m = p.matcher(raw);
 		if(m.find())
 			res = m.group();
+		if(res.contains(":"))
+		{
+			String[] splited = res.split(":");
+			int hours = Integer.parseInt(splited[0]);
+			int minutes = Integer.parseInt(splited[1]);
+			res = "" + (hours + minutes/60.0);
+		}
 		return res;
 	}
 	
@@ -124,18 +131,21 @@ public class Main {
 								res = res + cell.getStringCellValue()+"|";
 							else
 								res = res + parseIntAndFloat(cell.getStringCellValue()) + "|";
-								
+						else if(idcolonne == 26 && res.length()>0)
+						{
+							res = res + (int)cell.getNumericCellValue() +"|";
+						}
 						else if(cell.getCellTypeEnum()== CellType.NUMERIC)
 					
 							res = res + (int)cell.getNumericCellValue() +"|";
 						else if(cell.getCellTypeEnum()==CellType.BLANK)
 							if(res.length()>0)
 								res = res + "*|";
-						//else if(cell.getCellTypeEnum()==CellType._NONE)
-							//res = res + "|";
+						else if(cell.getCellTypeEnum()==CellType._NONE)
+							res = res + "*|";
 						else if(cell.getCellTypeEnum()==CellType.FORMULA)
 							if(cell.getCachedFormulaResultTypeEnum()== CellType.NUMERIC)
-								res = res + (int)cell.getNumericCellValue() +"|";
+								res = res + cell.getNumericCellValue() +"|";
 							else
 								res = res + cell.getStringCellValue()+"|";
 						else
