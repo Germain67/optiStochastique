@@ -145,7 +145,7 @@ public class Main {
 							res = res + "*|";
 						else if(cell.getCellTypeEnum()==CellType.FORMULA)
 							if(cell.getCachedFormulaResultTypeEnum()== CellType.NUMERIC)
-								res = res + cell.getNumericCellValue() +"|";
+								res = res + (int)cell.getNumericCellValue() +"|";
 							else
 								res = res + cell.getStringCellValue()+"|";
 						else
