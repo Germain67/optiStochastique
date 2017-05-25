@@ -13,8 +13,8 @@
 using namespace std;
 
 typedef struct{
-  int startHour;
-  int endHour;
+  double startHour;
+  double endHour;
 } Interval;
 
 typedef struct{
@@ -55,10 +55,10 @@ std::vector<Interval> strToIntervals(std::string str)
     std::vector<std::string> horaires = split(str, '[');
     for(int i = 1; i<horaires.size() ; i++)
     {
-      Interval cur_interval;
       std::vector<std::string> vals = split(horaires[i], ',');
-      cur_interval.startHour = atoi(vals[0].c_str());
-      cur_interval.endHour = atoi(split(vals[1], ']')[0].c_str());
+      Interval cur_interval;
+      cur_interval.startHour = atof(vals[0].c_str());
+      cur_interval.endHour = atof(split(vals[1], ']')[0].c_str());
       res.push_back(cur_interval);
     }
   }
@@ -88,7 +88,14 @@ std::vector<Paper> readPapers()
       }
       p.dispoDay1 = strToIntervals(lineElems[5]);
       p.dispoDay2 = strToIntervals(lineElems[6]);
-      p.dispoDay3 = strToIntervals(lineElems[7]);
+      if(lineElems.size() < 8)
+      {
+        std::cout << "ERROR" << '\n';
+      }
+      else
+      {
+        p.dispoDay3 = strToIntervals(lineElems[7]);
+      }
       //p.startDate = NULL;
       papers.push_back(p);
   }
