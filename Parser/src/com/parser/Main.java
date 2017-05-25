@@ -123,8 +123,10 @@ public class Main {
 							if(idcolonne != 32)
 								res = res + cell.getStringCellValue()+"|";
 							else
-								res = res + parseIntAndFloat(cell.getStringCellValue());
+								res = res + parseIntAndFloat(cell.getStringCellValue()) + "|";
+								
 						else if(cell.getCellTypeEnum()== CellType.NUMERIC)
+					
 							res = res + (int)cell.getNumericCellValue() +"|";
 						else if(cell.getCellTypeEnum()==CellType.BLANK)
 							if(res.length()>0)
@@ -137,7 +139,8 @@ public class Main {
 							else
 								res = res + cell.getStringCellValue()+"|";
 						else
-							System.out.println(cell.getCellTypeEnum().toString());
+							if(res.length()>0)
+								res = res + "*|";
 					}
 					continuer = true;
 				}
