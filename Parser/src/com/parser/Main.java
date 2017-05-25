@@ -57,6 +57,8 @@ public class Main {
 			int minutes = Integer.parseInt(splited[1]);
 			res = "" + (hours + minutes/60.0);
 		}
+		if(res.length()==0)
+			res = "*";
 		return res;
 	}
 	
@@ -82,6 +84,8 @@ public class Main {
 				res = "[" + (hourl + minutel/60.0)+","+ (hourr + minuter/60.0)  + "]";
 			}
 		}
+		if(res.length()==0)
+			res = "*";
 		return res;
 	}
 	
