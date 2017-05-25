@@ -72,7 +72,7 @@ public class Main {
 				String tempheure = splited[0].substring(1, splited[0].length());
 				int hour = Integer.parseInt(tempheure);
 				int minute = Integer.parseInt(tempmin);
-				res = "[" + (hour + minute/60.0) + "]";
+				res = "[" + (hour + minute/60) + "]";
 			}
 		}
 		return res;
