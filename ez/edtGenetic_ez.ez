@@ -59,7 +59,7 @@ std::vector<Interval> strToIntervals(std::string str)
   vector<Interval> res;
   if(str != "*"){
     std::vector<std::string> horaires = split(str, '[');
-    for(int i = 1; i<horaires.size() ; i++)
+    for(size_t i = 1; i < horaires.size() ; i++)
     {
       std::vector<std::string> vals = split(horaires[i], ',');
       Interval cur_interval;
@@ -160,7 +160,7 @@ GenomeClass{
   {
     CustomDate d;
     d.year = 2015;
-    if((int) random (0, 1) == 1)
+    if(tossCoin())
     {
       d.month = 9;
       d.day = 30;
@@ -179,34 +179,17 @@ GenomeClass{
 \end
 
 \GenomeClass::crossover :
-  // must create "child" out of "parent1" and "parent2"
-  /*double dScoreP1a, dScoreP1b, dScoreP2a,dScoreP2b;
-  int pos=random(0,papers.size()-1)+1;
-  dScoreP1a=dScoreP1b=dScoreP2a=dScoreP2b=0;
-
-  for(int i=0;i<pos;i++)
-    for(int j=0;j<REV_PER_PAP;j++){
-      dScoreP1a+=parent1.paper[i].dScore[j];
-      dScoreP2a+=parent2.paper[i].dScore[j];
+  for(int i=0; i < NB_PAPERS; i++)
+  {
+    if(tossCoin())
+    {
+      child.paper[i] = parent1.paper[i];
     }
-  for(int i=pos;i<papers.size();i++)
-    for(int j=0;j<REV_PER_PAP;j++){
-      dScoreP1b+=parent1.paper[i].dScore[j];
-      dScoreP2b+=parent2.paper[i].dScore[j];
+    else
+    {
+      child.paper[i] = parent2.paper[i];
     }
-
-  if (dScoreP1a+dScoreP2b>dScoreP1b+dScoreP2a)
-    for(int i=pos+1;i<papers.size();i++)
-      for(int j=0;j<REV_PER_PAP;j++)
-        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
-  else {
-    for(int i=0;i<pos;i++)
-      for(int j=0;j<REV_PER_PAP;j++)
-        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
-    for(int i=pos;i<papers.size();i++)
-      for(int j=0;j<REV_PER_PAP;j++)
-        child.paper[i].reviewer[j]=parent1.paper[i].reviewer[j];
-  }*/
+  }
 \end
 
 \GenomeClass::mutator : // Must return the number of mutations
@@ -239,7 +222,7 @@ GenomeClass{
 \end
 
 \GenomeClass::evaluator : // Returns the score as a real value
-  //TODO: eval
+  return 1337;
 \end
 
 \User Makefile options:

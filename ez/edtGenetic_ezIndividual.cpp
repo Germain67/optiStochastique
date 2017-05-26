@@ -89,7 +89,7 @@ std::vector<Interval> strToIntervals(std::string str)
   vector<Interval> res;
   if(str != "*"){
     std::vector<std::string> horaires = split(str, '[');
-    for(int i = 1; i<horaires.size() ; i++)
+    for(size_t i = 1; i < horaires.size() ; i++)
     {
       std::vector<std::string> vals = split(horaires[i], ',');
       Interval cur_interval;
@@ -176,7 +176,7 @@ void edtGenetic_ezFinal(CPopulation* pop){
 }
 
 void EASEABeginningGenerationFunction(CEvolutionaryAlgorithm* evolutionaryAlgorithm){
-	#line 281 "edtGenetic_ez.ez"
+	#line 264 "edtGenetic_ez.ez"
 {
 #line 143 "edtGenetic_ez.ez"
 
@@ -208,7 +208,7 @@ IndividualImpl::IndividualImpl() : CIndividual() {
   {
     CustomDate d;
     d.year = 2015;
-    if((int) globalRandomGenerator->random (0, 1) == 1)
+    if(globalRandomGenerator->tossCoin())
     {
       d.month = 9;
       d.day = 30;
@@ -244,9 +244,9 @@ float IndividualImpl::evaluate(){
     return fitness;
   else{
     valid = true;
-    #line 241 "edtGenetic_ez.ez"
+    #line 224 "edtGenetic_ez.ez"
  // Returns the score as a real value
-  //TODO: eval
+  return fitness =  5;
 
   }
 }
@@ -313,34 +313,17 @@ CIndividual* IndividualImpl::crossover(CIndividual** ps){
 	// Problem specific part
   	#line 181 "edtGenetic_ez.ez"
 
-  // must create "child" out of "parent1" and "parent2"
-  /*double dScoreP1a, dScoreP1b, dScoreP2a,dScoreP2b;
-  int pos=random(0,papers.size()-1)+1;
-  dScoreP1a=dScoreP1b=dScoreP2a=dScoreP2b=0;
-
-  for(int i=0;i<pos;i++)
-    for(int j=0;j<REV_PER_PAP;j++){
-      dScoreP1a+=parent1.paper[i].dScore[j];
-      dScoreP2a+=parent2.paper[i].dScore[j];
+  for(int i=0; i < NB_PAPERS; i++)
+  {
+    if(globalRandomGenerator->tossCoin())
+    {
+      child.paper[i] = parent1.paper[i];
     }
-  for(int i=pos;i<papers.size();i++)
-    for(int j=0;j<REV_PER_PAP;j++){
-      dScoreP1b+=parent1.paper[i].dScore[j];
-      dScoreP2b+=parent2.paper[i].dScore[j];
+    else
+    {
+      child.paper[i] = parent2.paper[i];
     }
-
-  if (dScoreP1a+dScoreP2b>dScoreP1b+dScoreP2a)
-    for(int i=pos+1;i<papers.size();i++)
-      for(int j=0;j<REV_PER_PAP;j++)
-        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
-  else {
-    for(int i=0;i<pos;i++)
-      for(int j=0;j<REV_PER_PAP;j++)
-        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
-    for(int i=pos;i<papers.size();i++)
-      for(int j=0;j<REV_PER_PAP;j++)
-        child.paper[i].reviewer[j]=parent1.paper[i].reviewer[j];
-  }*/
+  }
 
 
 
@@ -375,7 +358,7 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
 
   // ********************
   // Problem specific part
-  #line 212 "edtGenetic_ez.ez"
+  #line 195 "edtGenetic_ez.ez"
  // Must return the number of mutations
   float fMutProbPerGene=(((*EZ_current_generation)%40)/40.0)*(NB_PAPERS*.005)+.1;//.235;
   int nbMutations = 0;
