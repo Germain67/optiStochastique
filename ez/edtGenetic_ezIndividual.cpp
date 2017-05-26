@@ -143,14 +143,14 @@ void printPaper(Paper p){
 
 // Initialisation function
 void EASEAInitFunction(int argc, char *argv[]){
-#line 132 "edtGenetic_ez.ez"
+#line 135 "edtGenetic_ez.ez"
 
   readPapers();
 }
 
 // Finalization function
 void EASEAFinalization(CPopulation* population){
-#line 136 "edtGenetic_ez.ez"
+#line 139 "edtGenetic_ez.ez"
 
   //TODO: Afficher les résultats
 }
@@ -176,9 +176,9 @@ void edtGenetic_ezFinal(CPopulation* pop){
 }
 
 void EASEABeginningGenerationFunction(CEvolutionaryAlgorithm* evolutionaryAlgorithm){
-	#line 254 "edtGenetic_ez.ez"
+	#line 281 "edtGenetic_ez.ez"
 {
-#line 140 "edtGenetic_ez.ez"
+#line 143 "edtGenetic_ez.ez"
 
 //cout << "At the beginning of each generation function called" << endl;
 }
@@ -202,14 +202,26 @@ void EASEAGenerationFunctionBeforeReplacement(CEvolutionaryAlgorithm* evolutiona
 IndividualImpl::IndividualImpl() : CIndividual() {
    
   // Genome Initialiser
-#line 155 "edtGenetic_ez.ez"
+#line 158 "edtGenetic_ez.ez"
  // "initializer" is also accepted
   for(int i = 0; i < NB_PAPERS; i++)
   {
     CustomDate d;
-    d.day = (int) globalRandomGenerator->random(0, 2);
+    d.year = 2015;
+    if((int) globalRandomGenerator->random (0, 1) == 1)
+    {
+      d.month = 9;
+      d.day = 30;
+    }
+    else
+    {
+      d.month = 10;
+      d.day = 1;
+    }
+
     d.hour = (int) globalRandomGenerator->random(0,23);
     d.minute = (int) globalRandomGenerator->random(0, 59);
+    d.second = (int) globalRandomGenerator->random(0, 59);
     (*this).paper[i].startDate = d;
   }
 
@@ -232,7 +244,7 @@ float IndividualImpl::evaluate(){
     return fitness;
   else{
     valid = true;
-    #line 214 "edtGenetic_ez.ez"
+    #line 241 "edtGenetic_ez.ez"
  // Returns the score as a real value
   //TODO: eval
 
@@ -299,7 +311,7 @@ CIndividual* IndividualImpl::crossover(CIndividual** ps){
 
 	// ********************
 	// Problem specific part
-  	#line 166 "edtGenetic_ez.ez"
+  	#line 181 "edtGenetic_ez.ez"
 
   // must create "child" out of "parent1" and "parent2"
   /*double dScoreP1a, dScoreP1b, dScoreP2a,dScoreP2b;
@@ -363,7 +375,7 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
 
   // ********************
   // Problem specific part
-  #line 197 "edtGenetic_ez.ez"
+  #line 212 "edtGenetic_ez.ez"
  // Must return the number of mutations
   float fMutProbPerGene=(((*EZ_current_generation)%40)/40.0)*(NB_PAPERS*.005)+.1;//.235;
   int nbMutations = 0;
@@ -371,9 +383,21 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
   {
     if (globalRandomGenerator->tossCoin(fMutProbPerGene)){
       CustomDate d;
-      d.day = (int) globalRandomGenerator->random(0, 2);
+      d.year = 2015;
+      if((int) globalRandomGenerator->random (0, 1) == 1)
+      {
+        d.month = 9;
+        d.day = 30;
+      }
+      else
+      {
+        d.month = 10;
+        d.day = 1;
+      }
+
       d.hour = (int) globalRandomGenerator->random(0,23);
       d.minute = (int) globalRandomGenerator->random(0, 59);
+      d.second = (int) globalRandomGenerator->random(0, 59);
       (*this).paper[i].startDate = d;
       nbMutations++;
     }

@@ -31,53 +31,74 @@ public:
   CustomDate(){  // Constructor
   }
   CustomDate(const CustomDate &EASEA_Var) {  // Copy constructor
+    second=EASEA_Var.second;
     minute=EASEA_Var.minute;
     hour=EASEA_Var.hour;
     day=EASEA_Var.day;
+    month=EASEA_Var.month;
+    year=EASEA_Var.year;
   }
   virtual ~CustomDate() {  // Destructor
   }
   string serializer() {  // serialize
   	ostringstream EASEA_Line(ios_base::app);
+	EASEA_Line << this->second << " ";
 	EASEA_Line << this->minute << " ";
 	EASEA_Line << this->hour << " ";
 	EASEA_Line << this->day << " ";
+	EASEA_Line << this->month << " ";
+	EASEA_Line << this->year << " ";
   	return EASEA_Line.str();
   }
   void deserializer(istringstream* EASEA_Line) {  // deserialize
   	string line;
+	(*EASEA_Line) >> this->second;
 	(*EASEA_Line) >> this->minute;
 	(*EASEA_Line) >> this->hour;
 	(*EASEA_Line) >> this->day;
+	(*EASEA_Line) >> this->month;
+	(*EASEA_Line) >> this->year;
   }
   CustomDate& operator=(const CustomDate &EASEA_Var) {  // Operator=
     if (&EASEA_Var == this) return *this;
+    second = EASEA_Var.second;
     minute = EASEA_Var.minute;
     hour = EASEA_Var.hour;
     day = EASEA_Var.day;
+    month = EASEA_Var.month;
+    year = EASEA_Var.year;
   return *this;
   }
 
   bool operator==(CustomDate &EASEA_Var) const {  // Operator==
+    if (second!=EASEA_Var.second) return false;
     if (minute!=EASEA_Var.minute) return false;
     if (hour!=EASEA_Var.hour) return false;
     if (day!=EASEA_Var.day) return false;
+    if (month!=EASEA_Var.month) return false;
+    if (year!=EASEA_Var.year) return false;
   return true;
   }
 
   bool operator!=(CustomDate &EASEA_Var) const {return !(*this==EASEA_Var);} // operator!=
 
   friend ostream& operator<< (ostream& os, const CustomDate& EASEA_Var) { // Output stream insertion operator
+    os <<  "second:" << EASEA_Var.second << "\n";
     os <<  "minute:" << EASEA_Var.minute << "\n";
     os <<  "hour:" << EASEA_Var.hour << "\n";
     os <<  "day:" << EASEA_Var.day << "\n";
+    os <<  "month:" << EASEA_Var.month << "\n";
+    os <<  "year:" << EASEA_Var.year << "\n";
     return os;
   }
 
 // Class members 
+  int second;
   int minute;
   int hour;
   int day;
+  int month;
+  int year;
 };
 
 class Match {
