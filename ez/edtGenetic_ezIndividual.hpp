@@ -25,17 +25,17 @@ extern int OFFSPRING_SIZE;
 
 // User classes
 
-class Date {
+class CustomDate {
 public:
-// Default methods for class Date
-  Date(){  // Constructor
+// Default methods for class CustomDate
+  CustomDate(){  // Constructor
   }
-  Date(const Date &EASEA_Var) {  // Copy constructor
+  CustomDate(const CustomDate &EASEA_Var) {  // Copy constructor
     minute=EASEA_Var.minute;
     hour=EASEA_Var.hour;
     day=EASEA_Var.day;
   }
-  virtual ~Date() {  // Destructor
+  virtual ~CustomDate() {  // Destructor
   }
   string serializer() {  // serialize
   	ostringstream EASEA_Line(ios_base::app);
@@ -50,7 +50,7 @@ public:
 	(*EASEA_Line) >> this->hour;
 	(*EASEA_Line) >> this->day;
   }
-  Date& operator=(const Date &EASEA_Var) {  // Operator=
+  CustomDate& operator=(const CustomDate &EASEA_Var) {  // Operator=
     if (&EASEA_Var == this) return *this;
     minute = EASEA_Var.minute;
     hour = EASEA_Var.hour;
@@ -58,16 +58,16 @@ public:
   return *this;
   }
 
-  bool operator==(Date &EASEA_Var) const {  // Operator==
+  bool operator==(CustomDate &EASEA_Var) const {  // Operator==
     if (minute!=EASEA_Var.minute) return false;
     if (hour!=EASEA_Var.hour) return false;
     if (day!=EASEA_Var.day) return false;
   return true;
   }
 
-  bool operator!=(Date &EASEA_Var) const {return !(*this==EASEA_Var);} // operator!=
+  bool operator!=(CustomDate &EASEA_Var) const {return !(*this==EASEA_Var);} // operator!=
 
-  friend ostream& operator<< (ostream& os, const Date& EASEA_Var) { // Output stream insertion operator
+  friend ostream& operator<< (ostream& os, const CustomDate& EASEA_Var) { // Output stream insertion operator
     os <<  "minute:" << EASEA_Var.minute << "\n";
     os <<  "hour:" << EASEA_Var.hour << "\n";
     os <<  "day:" << EASEA_Var.day << "\n";
@@ -118,7 +118,7 @@ public:
   }
 
 // Class members 
-  Date startDate;
+  CustomDate startDate;
 };
 
 
@@ -127,7 +127,7 @@ class IndividualImpl : public CIndividual {
 public: // in edtGenetic_ez the genome is public (for user functions,...)
 	// Class members
   	// Class members 
-  Match paper[1024];
+  Match paper[263];
 
 
 public:

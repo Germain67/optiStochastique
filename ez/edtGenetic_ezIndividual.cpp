@@ -35,6 +35,7 @@ extern CEvolutionaryAlgorithm* EA;
 #include <algorithm>
 #include <sstream>
 #include <iterator>
+#define NB_PAPERS 263
 
 using namespace std;
 
@@ -64,7 +65,7 @@ vector<Paper> papers;
 
 // User functions
 
-#line 39 "edtGenetic_ez.ez"
+#line 40 "edtGenetic_ez.ez"
 
 
 template<typename Out>
@@ -175,7 +176,7 @@ void edtGenetic_ezFinal(CPopulation* pop){
 }
 
 void EASEABeginningGenerationFunction(CEvolutionaryAlgorithm* evolutionaryAlgorithm){
-	#line 207 "edtGenetic_ez.ez"
+	#line 254 "edtGenetic_ez.ez"
 {
 #line 140 "edtGenetic_ez.ez"
 
@@ -203,7 +204,14 @@ IndividualImpl::IndividualImpl() : CIndividual() {
   // Genome Initialiser
 #line 155 "edtGenetic_ez.ez"
  // "initializer" is also accepted
-  //TODO: initialisation
+  for(int i = 0; i < NB_PAPERS; i++)
+  {
+    CustomDate d;
+    d.day = (int) globalRandomGenerator->random(0, 2);
+    d.hour = (int) globalRandomGenerator->random(0,23);
+    d.minute = (int) globalRandomGenerator->random(0, 59);
+    (*this).paper[i].startDate = d;
+  }
 
   valid = false;
   isImmigrant = false;
@@ -224,7 +232,7 @@ float IndividualImpl::evaluate(){
     return fitness;
   else{
     valid = true;
-    #line 167 "edtGenetic_ez.ez"
+    #line 214 "edtGenetic_ez.ez"
  // Returns the score as a real value
   //TODO: eval
 
@@ -240,7 +248,7 @@ void IndividualImpl::boundChecking(){
 string IndividualImpl::serialize(){
     ostringstream EASEA_Line(ios_base::app);
     // Memberwise serialization
-	for(int EASEA_Ndx=0; EASEA_Ndx<1024; EASEA_Ndx++)
+	for(int EASEA_Ndx=0; EASEA_Ndx<263; EASEA_Ndx++)
 		EASEA_Line << this->paper[EASEA_Ndx].serializer() <<" ";
 
     EASEA_Line << this->fitness;
@@ -251,7 +259,7 @@ void IndividualImpl::deserialize(string Line){
     istringstream EASEA_Line(Line);
     string line;
     // Memberwise deserialization
-	for(int EASEA_Ndx=0; EASEA_Ndx<1024; EASEA_Ndx++)
+	for(int EASEA_Ndx=0; EASEA_Ndx<263; EASEA_Ndx++)
 		this->paper[EASEA_Ndx].deserializer(&EASEA_Line);
 
     EASEA_Line >> this->fitness;
@@ -264,7 +272,7 @@ IndividualImpl::IndividualImpl(const IndividualImpl& genome){
   // ********************
   // Problem specific part
   // Memberwise copy
-    {for(int EASEA_Ndx=0; EASEA_Ndx<1024; EASEA_Ndx++)
+    {for(int EASEA_Ndx=0; EASEA_Ndx<263; EASEA_Ndx++)
        paper[EASEA_Ndx]=genome.paper[EASEA_Ndx];}
 
 
@@ -291,9 +299,36 @@ CIndividual* IndividualImpl::crossover(CIndividual** ps){
 
 	// ********************
 	// Problem specific part
-  	#line 159 "edtGenetic_ez.ez"
+  	#line 166 "edtGenetic_ez.ez"
 
-  //TODO: croisements
+  // must create "child" out of "parent1" and "parent2"
+  /*double dScoreP1a, dScoreP1b, dScoreP2a,dScoreP2b;
+  int pos=random(0,papers.size()-1)+1;
+  dScoreP1a=dScoreP1b=dScoreP2a=dScoreP2b=0;
+
+  for(int i=0;i<pos;i++)
+    for(int j=0;j<REV_PER_PAP;j++){
+      dScoreP1a+=parent1.paper[i].dScore[j];
+      dScoreP2a+=parent2.paper[i].dScore[j];
+    }
+  for(int i=pos;i<papers.size();i++)
+    for(int j=0;j<REV_PER_PAP;j++){
+      dScoreP1b+=parent1.paper[i].dScore[j];
+      dScoreP2b+=parent2.paper[i].dScore[j];
+    }
+
+  if (dScoreP1a+dScoreP2b>dScoreP1b+dScoreP2a)
+    for(int i=pos+1;i<papers.size();i++)
+      for(int j=0;j<REV_PER_PAP;j++)
+        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
+  else {
+    for(int i=0;i<pos;i++)
+      for(int j=0;j<REV_PER_PAP;j++)
+        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
+    for(int i=pos;i<papers.size();i++)
+      for(int j=0;j<REV_PER_PAP;j++)
+        child.paper[i].reviewer[j]=parent1.paper[i].reviewer[j];
+  }*/
 
 
 
@@ -328,9 +363,22 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
 
   // ********************
   // Problem specific part
-  #line 163 "edtGenetic_ez.ez"
+  #line 197 "edtGenetic_ez.ez"
  // Must return the number of mutations
-  //TODO: mutations
+  float fMutProbPerGene=(((*EZ_current_generation)%40)/40.0)*(NB_PAPERS*.005)+.1;//.235;
+  int nbMutations = 0;
+  for(int i = 0; i < NB_PAPERS; i++)
+  {
+    if (globalRandomGenerator->tossCoin(fMutProbPerGene)){
+      CustomDate d;
+      d.day = (int) globalRandomGenerator->random(0, 2);
+      d.hour = (int) globalRandomGenerator->random(0,23);
+      d.minute = (int) globalRandomGenerator->random(0, 59);
+      (*this).paper[i].startDate = d;
+      nbMutations++;
+    }
+  }
+	return  nbMutations>0?true:false;
 
 }
 

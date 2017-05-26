@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iterator>
+#define NB_PAPERS 263
 
 using namespace std;
 
@@ -115,17 +116,16 @@ void printPaper(Paper p){
 \end
 
 \User classes :
-//TODO: Define genom class
-Date{
+CustomDate{
   int day;
   int hour;
   int minute;
 }
 Match {
-	Date startDate;
+	CustomDate startDate;
 }
 GenomeClass{
-  Match paper[1024];
+  Match paper[NB_PAPERS];
 }
 \end
 
@@ -153,15 +153,62 @@ GenomeClass{
 \end
 
 \GenomeClass::initialiser : // "initializer" is also accepted
-  //TODO: initialisation
+  for(int i = 0; i < NB_PAPERS; i++)
+  {
+    CustomDate d;
+    d.day = (int) random(0, 2);
+    d.hour = (int) random(0,23);
+    d.minute = (int) random(0, 59);
+    Genome.paper[i].startDate = d;
+  }
 \end
 
 \GenomeClass::crossover :
-  //TODO: croisements
+  // must create "child" out of "parent1" and "parent2"
+  /*double dScoreP1a, dScoreP1b, dScoreP2a,dScoreP2b;
+  int pos=random(0,papers.size()-1)+1;
+  dScoreP1a=dScoreP1b=dScoreP2a=dScoreP2b=0;
+
+  for(int i=0;i<pos;i++)
+    for(int j=0;j<REV_PER_PAP;j++){
+      dScoreP1a+=parent1.paper[i].dScore[j];
+      dScoreP2a+=parent2.paper[i].dScore[j];
+    }
+  for(int i=pos;i<papers.size();i++)
+    for(int j=0;j<REV_PER_PAP;j++){
+      dScoreP1b+=parent1.paper[i].dScore[j];
+      dScoreP2b+=parent2.paper[i].dScore[j];
+    }
+
+  if (dScoreP1a+dScoreP2b>dScoreP1b+dScoreP2a)
+    for(int i=pos+1;i<papers.size();i++)
+      for(int j=0;j<REV_PER_PAP;j++)
+        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
+  else {
+    for(int i=0;i<pos;i++)
+      for(int j=0;j<REV_PER_PAP;j++)
+        child.paper[i].reviewer[j]=parent2.paper[i].reviewer[j];
+    for(int i=pos;i<papers.size();i++)
+      for(int j=0;j<REV_PER_PAP;j++)
+        child.paper[i].reviewer[j]=parent1.paper[i].reviewer[j];
+  }*/
 \end
 
 \GenomeClass::mutator : // Must return the number of mutations
-  //TODO: mutations
+  float fMutProbPerGene=((currentGeneration%40)/40.0)*(NB_PAPERS*.005)+.1;//.235;
+  int nbMutations = 0;
+  for(int i = 0; i < NB_PAPERS; i++)
+  {
+    if (tossCoin(fMutProbPerGene)){
+      CustomDate d;
+      d.day = (int) random(0, 2);
+      d.hour = (int) random(0,23);
+      d.minute = (int) random(0, 59);
+      Genome.paper[i].startDate = d;
+      nbMutations++;
+    }
+  }
+	return nbMutations;
 \end
 
 \GenomeClass::evaluator : // Returns the score as a real value
