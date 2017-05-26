@@ -69,6 +69,7 @@ void readPapers()
 {
   std::ifstream file("Parser/papers.txt");
   std::string line;
+  int i;
   while (std::getline(file, line))
   {
       std::vector<std::string> lineElems = split(line, '|');
@@ -87,9 +88,13 @@ void readPapers()
       }
       p.dispoDay1 = strToIntervals(lineElems[5]);
       p.dispoDay2 = strToIntervals(lineElems[6]);
-      p.dispoDay3 = strToIntervals(lineElems[7]);
+      if(lineElems.size() < 8)
+        cout << i << '\n';
+      else
+        p.dispoDay3 = strToIntervals(lineElems[7]);
       //p.startDate = NULL;
       papers.push_back(p);
+      i++;
   }
 }
 
