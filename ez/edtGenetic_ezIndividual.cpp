@@ -77,7 +77,6 @@ void split(const std::string &s, char delim, Out result) {
     }
 }
 
-
 std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> elems;
     split(s, delim, std::back_inserter(elems));
@@ -143,14 +142,14 @@ void printPaper(Paper p){
 
 // Initialisation function
 void EASEAInitFunction(int argc, char *argv[]){
-#line 128 "edtGenetic_ez.ez"
+#line 132 "edtGenetic_ez.ez"
 
   readPapers();
 }
 
 // Finalization function
 void EASEAFinalization(CPopulation* population){
-#line 132 "edtGenetic_ez.ez"
+#line 136 "edtGenetic_ez.ez"
 
   //TODO: Afficher les résultats
 }
@@ -176,9 +175,9 @@ void edtGenetic_ezFinal(CPopulation* pop){
 }
 
 void EASEABeginningGenerationFunction(CEvolutionaryAlgorithm* evolutionaryAlgorithm){
-	#line 203 "edtGenetic_ez.ez"
+	#line 207 "edtGenetic_ez.ez"
 {
-#line 136 "edtGenetic_ez.ez"
+#line 140 "edtGenetic_ez.ez"
 
 //cout << "At the beginning of each generation function called" << endl;
 }
@@ -202,7 +201,7 @@ void EASEAGenerationFunctionBeforeReplacement(CEvolutionaryAlgorithm* evolutiona
 IndividualImpl::IndividualImpl() : CIndividual() {
    
   // Genome Initialiser
-#line 151 "edtGenetic_ez.ez"
+#line 155 "edtGenetic_ez.ez"
  // "initializer" is also accepted
   //TODO: initialisation
 
@@ -225,7 +224,7 @@ float IndividualImpl::evaluate(){
     return fitness;
   else{
     valid = true;
-    #line 163 "edtGenetic_ez.ez"
+    #line 167 "edtGenetic_ez.ez"
  // Returns the score as a real value
   //TODO: eval
 
@@ -241,7 +240,7 @@ void IndividualImpl::boundChecking(){
 string IndividualImpl::serialize(){
     ostringstream EASEA_Line(ios_base::app);
     // Memberwise serialization
-	for(int EASEA_Ndx=0; EASEA_Ndx<200; EASEA_Ndx++)
+	for(int EASEA_Ndx=0; EASEA_Ndx<1024; EASEA_Ndx++)
 		EASEA_Line << this->paper[EASEA_Ndx].serializer() <<" ";
 
     EASEA_Line << this->fitness;
@@ -252,7 +251,7 @@ void IndividualImpl::deserialize(string Line){
     istringstream EASEA_Line(Line);
     string line;
     // Memberwise deserialization
-	for(int EASEA_Ndx=0; EASEA_Ndx<200; EASEA_Ndx++)
+	for(int EASEA_Ndx=0; EASEA_Ndx<1024; EASEA_Ndx++)
 		this->paper[EASEA_Ndx].deserializer(&EASEA_Line);
 
     EASEA_Line >> this->fitness;
@@ -265,7 +264,7 @@ IndividualImpl::IndividualImpl(const IndividualImpl& genome){
   // ********************
   // Problem specific part
   // Memberwise copy
-    {for(int EASEA_Ndx=0; EASEA_Ndx<200; EASEA_Ndx++)
+    {for(int EASEA_Ndx=0; EASEA_Ndx<1024; EASEA_Ndx++)
        paper[EASEA_Ndx]=genome.paper[EASEA_Ndx];}
 
 
@@ -292,7 +291,7 @@ CIndividual* IndividualImpl::crossover(CIndividual** ps){
 
 	// ********************
 	// Problem specific part
-  	#line 155 "edtGenetic_ez.ez"
+  	#line 159 "edtGenetic_ez.ez"
 
   //TODO: croisements
 
@@ -329,7 +328,7 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
 
   // ********************
   // Problem specific part
-  #line 159 "edtGenetic_ez.ez"
+  #line 163 "edtGenetic_ez.ez"
  // Must return the number of mutations
   //TODO: mutations
 

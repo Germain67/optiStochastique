@@ -47,7 +47,6 @@ void split(const std::string &s, char delim, Out result) {
     }
 }
 
-
 std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> elems;
     split(s, delim, std::back_inserter(elems));
@@ -117,11 +116,16 @@ void printPaper(Paper p){
 
 \User classes :
 //TODO: Define genom class
-Match {
-	int mdr;
+Date{
+  int day;
+  int hour;
+  int minute;
 }
-GenomeClass {
-  Match paper[200];
+Match {
+	Date startDate;
+}
+GenomeClass{
+  Match paper[1024];
 }
 \end
 
