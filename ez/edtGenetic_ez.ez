@@ -164,16 +164,16 @@ GenomeClass{
     {
       d.month = 9;
       d.day = 30;
+      d.hour = (int) random(6,24);
     }
     else
     {
       d.month = 10;
       d.day = 1;
+      d.hour = (int) random(0,24);
     }
-
-    d.hour = (int) random(0,23);
-    d.minute = (int) random(0, 59);
-    d.second = (int) random(0, 59);
+    d.minute = (int) random(0, 60);
+    d.second = (int) random(0, 60);
     Genome.paper[i].startDate = d;
   }
 \end
@@ -200,20 +200,20 @@ GenomeClass{
     if (tossCoin(fMutProbPerGene)){
       CustomDate d;
       d.year = 2015;
-      if((int) random (0, 1) == 1)
+      if(tossCoin())
       {
         d.month = 9;
         d.day = 30;
+        d.hour = (int) random(6,24);
       }
       else
       {
         d.month = 10;
         d.day = 1;
+        d.hour = (int) random(0,24);
       }
-
-      d.hour = (int) random(0,23);
-      d.minute = (int) random(0, 59);
-      d.second = (int) random(0, 59);
+      d.minute = (int) random(0, 60);
+      d.second = (int) random(0, 60);
       Genome.paper[i].startDate = d;
       nbMutations++;
     }
