@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.poi.*;
+import org.apache.poi.ddf.EscherColorRef.SysIndexSource;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.format.CellFormatType;
 import org.apache.poi.ss.formula.FormulaType;
@@ -43,10 +44,21 @@ public class Main {
 		return res;
 	}
 	
+	private static int countPipe(String s)
+	{
+		int res = 0;
+		for(int i=0;i<s.length();i++)
+		{
+			if(s.charAt(i) == '|')
+				res++;
+		}
+		return res;
+	}
+	
 	private static String parseIntAndFloat(String raw)
 	{
 		String res = "";
-		Pattern p = Pattern.compile("(\\+|-)?([0-9]+(.?[0-9])+)");
+		Pattern p = Pattern.compile("(\\+|-)?([0-9]+(.?[0-9])*)");
 		Matcher m = p.matcher(raw);
 		if(m.find())
 			res = m.group();
@@ -84,7 +96,7 @@ public class Main {
 				res = "[" + (hourl + minutel/60.0)+","+ (hourr + minuter/60.0)  + "]";
 			}
 		}
-		if(res.length()==0)
+		if(res.length()==0 || res.equals(" "))
 			res = "*";
 		return res;
 	}
@@ -202,10 +214,17 @@ public class Main {
 		{
 			e.printStackTrace();
 		}
+		if(countPipe(res)!=8 && res.length()>2)
+		{
+			System.out.println(countPipe(res));
+			System.out.println(res);
 		
+		}
 		//System.out.println("res : "+res);
-		if(res.length()>1)
+		if(res.length()>1 && countPipe(res)==8)
 			return res.substring(0, res.length()-1);
+		else if(res.length()>1 && countPipe(res)==7)
+			return res + "*";
 		else
 			return "";
 	}
