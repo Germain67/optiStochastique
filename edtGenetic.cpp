@@ -65,10 +65,9 @@ std::vector<Interval> strToIntervals(std::string str)
   return res;
 }
 
-std::vector<Paper> readPapers()
+void readPapers()
 {
   std::ifstream file("Parser/papers.txt");
-  std::vector<Paper> papers;
   std::string line;
   while (std::getline(file, line))
   {
@@ -88,18 +87,10 @@ std::vector<Paper> readPapers()
       }
       p.dispoDay1 = strToIntervals(lineElems[5]);
       p.dispoDay2 = strToIntervals(lineElems[6]);
-      if(lineElems.size() < 8)
-      {
-        std::cout << "ERROR" << '\n';
-      }
-      else
-      {
-        p.dispoDay3 = strToIntervals(lineElems[7]);
-      }
+      p.dispoDay3 = strToIntervals(lineElems[7]);
       //p.startDate = NULL;
       papers.push_back(p);
   }
-  return papers;
 }
 
 void printPaper(Paper p){
@@ -115,7 +106,7 @@ void printPaper(Paper p){
 int main()
 {
   std::cout << "Importing papers.txt" << '\n';
-  std::vector<Paper> papers = readPapers();
+  readPapers();
   std::cout << "Importing finished" << '\n';
   return 0;
 }

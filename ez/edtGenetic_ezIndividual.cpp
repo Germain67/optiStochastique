@@ -39,8 +39,8 @@ extern CEvolutionaryAlgorithm* EA;
 using namespace std;
 
 typedef struct{
-  int startHour;
-  int endHour;
+  double startHour;
+  double endHour;
 } Interval;
 
 typedef struct{
@@ -87,24 +87,23 @@ std::vector<std::string> split(const std::string &s, char delim) {
 std::vector<Interval> strToIntervals(std::string str)
 {
   vector<Interval> res;
-  if(str == "*"){
-    return res;
-  }
-  std::vector<std::string> day = split(str, '[');
-  for(int i = 0; i<day.size() ; i++)
-  {
-    Interval cur_interval;
-    std::vector<std::string> vals = split(day[i], ',');
-    cur_interval.startHour = atoi(vals[0].c_str());
-    cur_interval.endHour = atoi(split(vals[1], ']')[0].c_str());
-    res.push_back(cur_interval);
+  if(str != "*"){
+    std::vector<std::string> horaires = split(str, '[');
+    for(int i = 1; i<horaires.size() ; i++)
+    {
+      std::vector<std::string> vals = split(horaires[i], ',');
+      Interval cur_interval;
+      cur_interval.startHour = atof(vals[0].c_str());
+      cur_interval.endHour = atof(split(vals[1], ']')[0].c_str());
+      res.push_back(cur_interval);
+    }
   }
   return res;
 }
 
 void readPapers()
 {
-  std::ifstream file("../papers.txt");
+  std::ifstream file("Parser/papers.txt");
   std::string line;
   while (std::getline(file, line))
   {
@@ -125,7 +124,7 @@ void readPapers()
       p.dispoDay1 = strToIntervals(lineElems[5]);
       p.dispoDay2 = strToIntervals(lineElems[6]);
       p.dispoDay3 = strToIntervals(lineElems[7]);
-      p.startDate = NULL;
+      //p.startDate = NULL;
       papers.push_back(p);
   }
 }
@@ -146,13 +145,14 @@ void printPaper(Paper p){
 void EASEAInitFunction(int argc, char *argv[]){
 #line 128 "edtGenetic_ez.ez"
 
-  //readPapers();
+  readPapers();
 }
 
 // Finalization function
 void EASEAFinalization(CPopulation* population){
 #line 132 "edtGenetic_ez.ez"
 
+  //TODO: Afficher les résultats
 }
 
 
@@ -176,9 +176,9 @@ void edtGenetic_ezFinal(CPopulation* pop){
 }
 
 void EASEABeginningGenerationFunction(CEvolutionaryAlgorithm* evolutionaryAlgorithm){
-	#line 202 "edtGenetic_ez.ez"
+	#line 203 "edtGenetic_ez.ez"
 {
-#line 135 "edtGenetic_ez.ez"
+#line 136 "edtGenetic_ez.ez"
 
 //cout << "At the beginning of each generation function called" << endl;
 }
@@ -202,7 +202,7 @@ void EASEAGenerationFunctionBeforeReplacement(CEvolutionaryAlgorithm* evolutiona
 IndividualImpl::IndividualImpl() : CIndividual() {
    
   // Genome Initialiser
-#line 150 "edtGenetic_ez.ez"
+#line 151 "edtGenetic_ez.ez"
  // "initializer" is also accepted
   //TODO: initialisation
 
@@ -225,7 +225,7 @@ float IndividualImpl::evaluate(){
     return fitness;
   else{
     valid = true;
-    #line 162 "edtGenetic_ez.ez"
+    #line 163 "edtGenetic_ez.ez"
  // Returns the score as a real value
   //TODO: eval
 
@@ -292,7 +292,7 @@ CIndividual* IndividualImpl::crossover(CIndividual** ps){
 
 	// ********************
 	// Problem specific part
-  	#line 154 "edtGenetic_ez.ez"
+  	#line 155 "edtGenetic_ez.ez"
 
   //TODO: croisements
 
@@ -329,7 +329,7 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
 
   // ********************
   // Problem specific part
-  #line 158 "edtGenetic_ez.ez"
+  #line 159 "edtGenetic_ez.ez"
  // Must return the number of mutations
   //TODO: mutations
 
