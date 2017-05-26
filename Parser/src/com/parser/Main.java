@@ -125,10 +125,12 @@ public class Main {
 		Row row = feuille.getRow(ligne);
 		Cell cell = null;
 		boolean continuer = true;
+		String temp = "";
 		try
 		{
 			if(row!=null)
 			{
+				int i = 0;
 				for (Iterator cellIt = row.cellIterator(); cellIt.hasNext();) 
 				{
 					cell = (Cell) cellIt.next();
@@ -140,7 +142,7 @@ public class Main {
 					 * 4  Session ID
 					 * 26 Duration
 					 * 32 Fuseau
-					 * 32 Dispo 1
+					 * 33 Dispo 1
 					 * 34 Dispo 2
 					 * 35 Dispo 3
 					 */
@@ -156,22 +158,32 @@ public class Main {
 					if(continuer)
 					{
 						if(cell.getCellTypeEnum() == CellType.STRING)
+						{
 							if(idcolonne != 32)
-								res = res + checkIntervalle(cell.getStringCellValue())+"|";
+								temp = checkIntervalle(cell.getStringCellValue());
 							else
-								res = res + parseIntAndFloat(cell.getStringCellValue()) + "|";
+								temp = parseIntAndFloat(cell.getStringCellValue());
+						res = res + temp + "|";
+						}
 						else if(idcolonne == 26 && res.length()>0)
 						{
 							res = res + (int)cell.getNumericCellValue() +"|";
 						}
-						else if(cell.getCellTypeEnum()== CellType.NUMERIC)
-					
+						else if(idcolonne == 26 && res.contains("|"))
 							res = res + (int)cell.getNumericCellValue() +"|";
+						else if(cell.getCellTypeEnum()== CellType.NUMERIC)
+						{
+							res = res + (int)cell.getNumericCellValue() +"|";
+						}
 						else if(cell.getCellTypeEnum()==CellType.BLANK)
+						{
 							if(res.length()>0)
 								res = res + "*|";
+						}
 						else if(cell.getCellTypeEnum()==CellType._NONE)
+						{
 							res = res + "*|";
+						}
 						else if(cell.getCellTypeEnum()==CellType.FORMULA)
 							if(cell.getCachedFormulaResultTypeEnum()== CellType.NUMERIC)
 								res = res + (int)cell.getNumericCellValue() +"|";
@@ -181,6 +193,7 @@ public class Main {
 							if(res.length()>0)
 								res = res + "*|";
 					}
+					i++;
 					continuer = true;
 				}
 			}
@@ -191,7 +204,7 @@ public class Main {
 		}
 		
 		//System.out.println("res : "+res);
-		if(res.length()>0)
+		if(res.length()>1)
 			return res.substring(0, res.length()-1);
 		else
 			return "";
