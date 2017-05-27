@@ -23,7 +23,7 @@ endif
 
 #USER MAKEFILE OPTIONS :
 
-  //CPPFLAGS+="-std=c++11"
+  CPPFLAGS+="-std=c++11"
 
 #END OF USER MAKEFILE OPTIONS
 

@@ -35,6 +35,7 @@ extern CEvolutionaryAlgorithm* EA;
 #include <algorithm>
 #include <sstream>
 #include <iterator>
+#include <cmath> //std::abs
 #define NB_PAPERS 263
 
 using namespace std;
@@ -65,7 +66,7 @@ vector<Paper> papers;
 
 // User functions
 
-#line 40 "edtGenetic_ez.ez"
+#line 41 "edtGenetic_ez.ez"
 
 
 template<typename Out>
@@ -139,18 +140,56 @@ void printPaper(Paper p){
   }
 }
 
+bool dateBeforeSecond(CustomDate d1, CustomDate d2)
+{
+  bool res = false;
+  if(d1.year<=d2.year)
+     if(d1.month<=d2.month)
+       if(d1.day<=d2.day)
+         if(d1.hour<=d2.hour)
+           if(d1.minute<=d2.minute)
+             if(d1.second<d2.second)
+               res = true;
+  return res;
+}
+
+int differenceMinute(CustomDate d1, CustomDate d2)
+{
+  int res = 0;
+  if(d2.day - d1.day == 0)
+  {
+    res += (d2.hour - d1.hour)*60;
+    res += std::abs((d2.minute - d1.minute));
+  }
+  else if(d2.day - d1.day == 29)
+  {
+    res +=(24-d1.hour)*60;
+    res += d2.hour*60;
+    res += d2.minute;
+  }
+  else
+  {
+    res+=(24-d1.day)*60;
+    res+= 24*60;
+    res += d2.hour*60;
+    res += d2.minute;
+  }
+  return res;
+
+}
+
 
 
 // Initialisation function
 void EASEAInitFunction(int argc, char *argv[]){
-#line 135 "edtGenetic_ez.ez"
+#line 174 "edtGenetic_ez.ez"
 
   readPapers();
 }
 
 // Finalization function
 void EASEAFinalization(CPopulation* population){
-#line 139 "edtGenetic_ez.ez"
+#line 178 "edtGenetic_ez.ez"
 
   //TODO: Afficher les résultats
 }
@@ -176,9 +215,9 @@ void edtGenetic_ezFinal(CPopulation* pop){
 }
 
 void EASEABeginningGenerationFunction(CEvolutionaryAlgorithm* evolutionaryAlgorithm){
-	#line 264 "edtGenetic_ez.ez"
+	#line 447 "edtGenetic_ez.ez"
 {
-#line 143 "edtGenetic_ez.ez"
+#line 182 "edtGenetic_ez.ez"
 
 //cout << "At the beginning of each generation function called" << endl;
 }
@@ -202,7 +241,7 @@ void EASEAGenerationFunctionBeforeReplacement(CEvolutionaryAlgorithm* evolutiona
 IndividualImpl::IndividualImpl() : CIndividual() {
    
   // Genome Initialiser
-#line 158 "edtGenetic_ez.ez"
+#line 197 "edtGenetic_ez.ez"
  // "initializer" is also accepted
   for(int i = 0; i < NB_PAPERS; i++)
   {
@@ -212,16 +251,16 @@ IndividualImpl::IndividualImpl() : CIndividual() {
     {
       d.month = 9;
       d.day = 30;
+      d.hour = (int) globalRandomGenerator->random(6,24);
     }
     else
     {
       d.month = 10;
       d.day = 1;
+      d.hour = (int) globalRandomGenerator->random(0,24);
     }
-
-    d.hour = (int) globalRandomGenerator->random(0,23);
-    d.minute = (int) globalRandomGenerator->random(0, 59);
-    d.second = (int) globalRandomGenerator->random(0, 59);
+    d.minute = (int) globalRandomGenerator->random(0, 60);
+    d.second = (int) globalRandomGenerator->random(0, 60);
     (*this).paper[i].startDate = d;
   }
 
@@ -244,9 +283,153 @@ float IndividualImpl::evaluate(){
     return fitness;
   else{
     valid = true;
-    #line 224 "edtGenetic_ez.ez"
+    #line 263 "edtGenetic_ez.ez"
  // Returns the score as a real value
-  return fitness =  5;
+//1/ Pour tout papers du track 15, il faut pas qu'il y ait un autre papers en meme temps
+//2/ Pour chaque paper, vérifier que c'est dans les dispo du chercheur
+//3/ Pour tout paper d'une meme session, il ne doit pas y avoir un autre paper en meme temps
+//4/ Il ne doit pas y avoir trop d'écart entre chaque paper
+  CustomDate tempDate;
+  CustomDate tempDate2;
+  int nbDe15 = 0;
+  int totalScore = 0;
+  int chercheurNonDispo = -100;
+  int paperMemeSession = -100;
+  int sessionPleniere = -100000;
+  int ecartFaible = -1 ; // <2h -1 par heure
+  int ecartMoyen = -5; // <4h -5 par heure
+  int ecartFort = -10; // >4h -10 par heure
+  std::vector<int>numSessions {4,5,6,7,8,9,10,11,12,13,15,16};
+
+  for(int i = 0; i< NB_PAPERS;i++) // on compte le nombre de paper des sessions plénières
+  {
+     if(papers[i].ID_Session == 15)
+     {
+        nbDe15++;
+     }
+  }
+  
+  for(int i = 0; i < NB_PAPERS; i++) // check en même temps
+  {
+    for(int j = i ; j< NB_PAPERS; j++)
+    {
+      if(papers[i].ID_Session == papers[j].ID_Session || papers[i].ID_Session == 15) //paper même session ou paper 15
+      {
+        tempDate = (*this).paper[i].startDate;
+        tempDate.hour += papers[i].duration;
+        if(tempDate.hour >24)
+        {
+           tempDate.hour = tempDate.hour%24;
+           tempDate.day += 1;
+        }
+        if(tempDate.day>30)
+        {
+           tempDate.day = tempDate.day%30;
+           tempDate.month +=1;
+        }
+        if(!dateBeforeSecond(tempDate,(*this).paper[j].startDate))
+        {
+          if(dateBeforeSecond((*this).paper[i].startDate,(*this).paper[j].startDate))
+          {
+            totalScore += paperMemeSession;
+            if(papers[i].ID_Session==15) //si en plus il s'agit de la session 15
+              totalScore += sessionPleniere;
+          }
+        }
+      } 
+    }
+  }
+  
+  for(int i = 0; i<NB_PAPERS; i++) // si Chercheur dispo
+  {
+        tempDate = (*this).paper[i].startDate;
+        int jour = tempDate.day;
+        int heure = tempDate.hour;
+        if(jour ==30)
+        {
+           for(int j = 0; j< papers[i].dispoDay1.size() ; j++)
+           {
+              if(heure < papers[i].dispoDay1[j].startHour && heure > papers[i].dispoDay1[j].endHour)
+                totalScore += chercheurNonDispo;
+           }
+        }
+        if(jour == 1)
+        {
+           for(int j = 0; j< papers[i].dispoDay2.size() ; j++)
+           {
+              if(heure < papers[i].dispoDay2[j].startHour && heure > papers[i].dispoDay2[j].endHour)
+                totalScore += chercheurNonDispo;
+           }
+        }
+        if(jour == 2)
+        {
+           for(int j = 0; j< papers[i].dispoDay3.size() ; j++)
+           {
+              if(heure < papers[i].dispoDay3[j].startHour && heure > papers[i].dispoDay3[j].endHour)
+                totalScore += chercheurNonDispo;
+           }
+        }
+  }
+  
+  for(int i = 0 ; i<numSessions.size(); i++) //vérification écart
+  {
+    vector<CustomDate> papiers;
+    vector<int> duree;
+    for(int j = 0; j<NB_PAPERS ; j++)
+    {
+      if(papers[j].ID_Session == numSessions[i])
+      {
+        papiers.push_back((*this).paper[j].startDate);
+        duree.push_back(papers[j].duration);
+      }
+    }
+    for(int k = 0 ; k < papiers.size()-1; k++)
+    {
+      for(int g = k ; g < papiers.size(); g++)
+      {
+        tempDate = papiers[k];
+        tempDate.hour += duree[k];
+        if(tempDate.hour >24)
+        {
+          tempDate.hour = tempDate.hour%24;
+          tempDate.day += 1;
+        }
+        if(tempDate.day>30)
+        {
+          tempDate.day = tempDate.day%30;
+          tempDate.month +=1;
+        }
+        
+        tempDate2 = papiers[g];
+        tempDate2.hour += duree[g];
+        if(tempDate2.hour >24)
+        {
+          tempDate2.hour = tempDate2.hour%24;
+          tempDate2.day += 1;
+        }
+        if(tempDate2.day>30)
+        {
+          tempDate2.day = tempDate2.day%30;
+          tempDate2.month +=1;
+        }
+        int diff = differenceMinute(tempDate,tempDate2);
+        if(diff<120)
+        {
+          totalScore += diff * ecartFaible;
+        }
+        else if(diff<240)
+        {
+          totalScore += diff * ecartMoyen;
+        }
+        else
+        {
+          totalScore += diff * ecartFort;
+        }
+      }
+    }
+  }
+  
+  return fitness =  totalScore;
 
   }
 }
@@ -311,7 +494,7 @@ CIndividual* IndividualImpl::crossover(CIndividual** ps){
 
 	// ********************
 	// Problem specific part
-  	#line 181 "edtGenetic_ez.ez"
+  	#line 220 "edtGenetic_ez.ez"
 
   for(int i=0; i < NB_PAPERS; i++)
   {
@@ -358,7 +541,7 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
 
   // ********************
   // Problem specific part
-  #line 195 "edtGenetic_ez.ez"
+  #line 234 "edtGenetic_ez.ez"
  // Must return the number of mutations
   float fMutProbPerGene=(((*EZ_current_generation)%40)/40.0)*(NB_PAPERS*.005)+.1;//.235;
   int nbMutations = 0;
@@ -367,20 +550,20 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
     if (globalRandomGenerator->tossCoin(fMutProbPerGene)){
       CustomDate d;
       d.year = 2015;
-      if((int) globalRandomGenerator->random (0, 1) == 1)
+      if(globalRandomGenerator->tossCoin())
       {
         d.month = 9;
         d.day = 30;
+        d.hour = (int) globalRandomGenerator->random(6,24);
       }
       else
       {
         d.month = 10;
         d.day = 1;
+        d.hour = (int) globalRandomGenerator->random(0,24);
       }
-
-      d.hour = (int) globalRandomGenerator->random(0,23);
-      d.minute = (int) globalRandomGenerator->random(0, 59);
-      d.second = (int) globalRandomGenerator->random(0, 59);
+      d.minute = (int) globalRandomGenerator->random(0, 60);
+      d.second = (int) globalRandomGenerator->random(0, 60);
       (*this).paper[i].startDate = d;
       nbMutations++;
     }
