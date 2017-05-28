@@ -12,7 +12,7 @@
 --nbOffspring=64 # -O : Nb of offspring (percentage or absolute)
 
 ######	  Stopping Criterions    #####
---nbGen=300 #Nb of generations
+--nbGen=100 #Nb of generations
 --timeLimit=0 # Time Limit: desactivate with (0) (in Seconds)
 
 ######    Evolution Engine / Replacement    ######
