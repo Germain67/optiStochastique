@@ -136,16 +136,6 @@ void readPapers()
   }
 }
 
-void printPaper(Paper p){
-  std::cout << "ID : " << p.ID << " ID_SESSION : " << p.ID_Session << " ID_Track : " << p.ID_Track << '\n';
-  std::cout << "duration : " << p.duration << " fuseauHoraire " << p.fuseauHoraire << '\n';
-  if(p.dispoDay1.size() > 0)
-  {
-    std::cout << "Start hour Dispo day 1" << p.dispoDay1[0].startHour << '\n';
-    std::cout << "End hour Dispo day 1" << p.dispoDay1[0].endHour << '\n';
-  }
-}
-
 struct tm customDateToTm(CustomDate d)
 {
   struct std::tm tmTime;
@@ -232,14 +222,14 @@ bool EnMemeTemps(CustomDate startDate1, CustomDate startDate2, int duration1, in
 
 // Initialisation function
 void EASEAInitFunction(int argc, char *argv[]){
-#line 224 "edtGenetic_ez.ez"
+#line 214 "edtGenetic_ez.ez"
 
   readPapers();
 }
 
 // Finalization function
 void EASEAFinalization(CPopulation* population){
-#line 228 "edtGenetic_ez.ez"
+#line 218 "edtGenetic_ez.ez"
 
   cout << "Meilleur score\t\t:\t" << ((IndividualImpl*)bBest)->evaluate() << " points" << endl;
   ofstream myfile;
@@ -249,8 +239,8 @@ void EASEAFinalization(CPopulation* population){
     CustomDate d1 = ((IndividualImpl*)bBest)->paper[i].startDate;
     CustomDate d2 = addDuration(((IndividualImpl*)bBest)->paper[i].startDate, papers[i].duration);
     myfile << "Paper " << papers[i].ID << " Track " << papers[i].ID_Track << " Session " << papers[i].ID_Session << '\n';
-    myfile << " Start " << d1.day << "/" << d1.month << " at " << d1.hour << ":" << d1.minute << ":" << d1.second << '\n';
-    myfile << " End " << d2.day << "/" << d2.month << " at " << d2.hour << ":" << d2.minute << ":" << d2.second << "\n\n";
+    myfile << "Start " << d1.day << "/" << d1.month << " at " << d1.hour << ":" << d1.minute << ":" << d1.second << '\n';
+    myfile << "End " << d2.day << "/" << d2.month << " at " << d2.hour << ":" << d2.minute << ":" << d2.second << "\n\n";
   }
   myfile.close();
 }
@@ -276,9 +266,9 @@ void edtGenetic_ezFinal(CPopulation* pop){
 }
 
 void EASEABeginningGenerationFunction(CEvolutionaryAlgorithm* evolutionaryAlgorithm){
-	#line 478 "edtGenetic_ez.ez"
+	#line 468 "edtGenetic_ez.ez"
 {
-#line 243 "edtGenetic_ez.ez"
+#line 233 "edtGenetic_ez.ez"
 
 //cout << "At the beginning of each generation function called" << endl;
 }
@@ -302,7 +292,7 @@ void EASEAGenerationFunctionBeforeReplacement(CEvolutionaryAlgorithm* evolutiona
 IndividualImpl::IndividualImpl() : CIndividual() {
    
   // Genome Initialiser
-#line 258 "edtGenetic_ez.ez"
+#line 248 "edtGenetic_ez.ez"
  // "initializer" is also accepted
   for(int i = 0; i < NB_PAPERS; i++)
   {
@@ -344,7 +334,7 @@ float IndividualImpl::evaluate(){
     return fitness;
   else{
     valid = true;
-    #line 324 "edtGenetic_ez.ez"
+    #line 314 "edtGenetic_ez.ez"
  // Returns the score as a real value
   //1/ Pour tout papers du track 15, il faut pas qu'il y ait un autre papers en meme temps
   //2/ Pour chaque paper, vérifier que c'est dans les dispo du chercheur
@@ -525,7 +515,7 @@ CIndividual* IndividualImpl::crossover(CIndividual** ps){
 
 	// ********************
 	// Problem specific part
-  	#line 281 "edtGenetic_ez.ez"
+  	#line 271 "edtGenetic_ez.ez"
 
   for(int i=0; i < NB_PAPERS; i++)
   {
@@ -572,7 +562,7 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
 
   // ********************
   // Problem specific part
-  #line 295 "edtGenetic_ez.ez"
+  #line 285 "edtGenetic_ez.ez"
  // Must return the number of mutations
   float fMutProbPerGene=(((*EZ_current_generation)%40)/40.0)*(NB_PAPERS*.005)+.1;//.235;
   int nbMutations = 0;

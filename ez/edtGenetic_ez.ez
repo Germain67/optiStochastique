@@ -106,16 +106,6 @@ void readPapers()
   }
 }
 
-void printPaper(Paper p){
-  std::cout << "ID : " << p.ID << " ID_SESSION : " << p.ID_Session << " ID_Track : " << p.ID_Track << '\n';
-  std::cout << "duration : " << p.duration << " fuseauHoraire " << p.fuseauHoraire << '\n';
-  if(p.dispoDay1.size() > 0)
-  {
-    std::cout << "Start hour Dispo day 1" << p.dispoDay1[0].startHour << '\n';
-    std::cout << "End hour Dispo day 1" << p.dispoDay1[0].endHour << '\n';
-  }
-}
-
 struct tm customDateToTm(CustomDate d)
 {
   struct std::tm tmTime;
