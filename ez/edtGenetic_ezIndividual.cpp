@@ -54,7 +54,6 @@ typedef struct{
   vector<Interval> dispoDay1;
   vector<Interval> dispoDay2;
   vector<Interval> dispoDay3;
-  struct tm* startDate;
 } Paper;
 
 ifstream fPaper;
@@ -66,7 +65,7 @@ vector<Paper> papers;
 
 // User functions
 
-#line 41 "edtGenetic_ez.ez"
+#line 40 "edtGenetic_ez.ez"
 
 
 template<typename Out>
@@ -140,56 +139,48 @@ void printPaper(Paper p){
   }
 }
 
-bool dateBeforeSecond(CustomDate d1, CustomDate d2)
+struct tm customDateToTm(CustomDate d)
 {
-  bool res = false;
-  if(d1.year<=d2.year)
-     if(d1.month<=d2.month)
-       if(d1.day<=d2.day)
-         if(d1.hour<=d2.hour)
-           if(d1.minute<=d2.minute)
-             if(d1.second<d2.second)
-               res = true;
-  return res;
+  struct std::tm tmTime;
+  tmTime.tm_year = d.year - 1900;
+  tmTime.tm_mon = d.month - 1;
+  tmTime.tm_mday = d.day;
+  tmTime.tm_hour = d.hour;
+  tmTime.tm_min = d.minute;
+  tmTime.tm_sec = d.second;
+  return tmTime;
+}
+
+bool isBeforeDate(CustomDate d1, CustomDate d2)
+{
+  struct tm t1 = customDateToTm(d1);
+  struct tm t2 = customDateToTm(d2);
+  time_t tt1 = mktime(&t1);
+  time_t tt2 = mktime(&t2);
+  return tt1 < tt2;
 }
 
 int differenceMinute(CustomDate d1, CustomDate d2)
 {
-  int res = 0;
-  if(d2.day - d1.day == 0)
-  {
-    res += (d2.hour - d1.hour)*60;
-    res += std::abs((d2.minute - d1.minute));
-  }
-  else if(d2.day - d1.day == 29)
-  {
-    res +=(24-d1.hour)*60;
-    res += d2.hour*60;
-    res += d2.minute;
-  }
-  else
-  {
-    res+=(24-d1.day)*60;
-    res+= 24*60;
-    res += d2.hour*60;
-    res += d2.minute;
-  }
-  return res;
-
+  struct tm t1 = customDateToTm(d1);
+  struct tm t2 = customDateToTm(d2);
+  time_t tt1 = mktime(&t1);
+  time_t tt2 = mktime(&t2);
+  return (abs(tt1 - tt2) / 60);
 }
 
 
 
 // Initialisation function
 void EASEAInitFunction(int argc, char *argv[]){
-#line 174 "edtGenetic_ez.ez"
+#line 165 "edtGenetic_ez.ez"
 
   readPapers();
 }
 
 // Finalization function
 void EASEAFinalization(CPopulation* population){
-#line 178 "edtGenetic_ez.ez"
+#line 169 "edtGenetic_ez.ez"
 
   //TODO: Afficher les résultats
 }
@@ -215,9 +206,9 @@ void edtGenetic_ezFinal(CPopulation* pop){
 }
 
 void EASEABeginningGenerationFunction(CEvolutionaryAlgorithm* evolutionaryAlgorithm){
-	#line 447 "edtGenetic_ez.ez"
+	#line 439 "edtGenetic_ez.ez"
 {
-#line 182 "edtGenetic_ez.ez"
+#line 173 "edtGenetic_ez.ez"
 
 //cout << "At the beginning of each generation function called" << endl;
 }
@@ -241,7 +232,7 @@ void EASEAGenerationFunctionBeforeReplacement(CEvolutionaryAlgorithm* evolutiona
 IndividualImpl::IndividualImpl() : CIndividual() {
    
   // Genome Initialiser
-#line 197 "edtGenetic_ez.ez"
+#line 188 "edtGenetic_ez.ez"
  // "initializer" is also accepted
   for(int i = 0; i < NB_PAPERS; i++)
   {
@@ -283,15 +274,15 @@ float IndividualImpl::evaluate(){
     return fitness;
   else{
     valid = true;
-    #line 263 "edtGenetic_ez.ez"
+    #line 254 "edtGenetic_ez.ez"
  // Returns the score as a real value
-//1/ Pour tout papers du track 15, il faut pas qu'il y ait un autre papers en meme temps
-//2/ Pour chaque paper, vérifier que c'est dans les dispo du chercheur
-//3/ Pour tout paper d'une meme session, il ne doit pas y avoir un autre paper en meme temps
-//4/ Il ne doit pas y avoir trop d'écart entre chaque paper
-  CustomDate tempDate;
-  CustomDate tempDate2;
-  int nbDe15 = 0;
+  //1/ Pour tout papers du track 15, il faut pas qu'il y ait un autre papers en meme temps
+  //2/ Pour chaque paper, vérifier que c'est dans les dispo du chercheur
+  //3/ Pour tout paper d'une meme session, il ne doit pas y avoir un autre paper en meme temps
+  //4/ Il ne doit pas y avoir trop d'écart entre chaque paper
+  CustomDate endDate;
+  CustomDate endDate2;
+  //int nbDe15 = 0;
   int totalScore = 0;
   int chercheurNonDispo = -100;
   int paperMemeSession = -100;
@@ -301,53 +292,54 @@ float IndividualImpl::evaluate(){
   int ecartFort = -10; // >4h -10 par heure
   std::vector<int>numSessions {4,5,6,7,8,9,10,11,12,13,15,16};
 
-  for(int i = 0; i< NB_PAPERS;i++) // on compte le nombre de paper des sessions plénières
+  /* for(int i = 0; i< NB_PAPERS;i++) // on compte le nombre de paper des sessions plénières
   {
      if(papers[i].ID_Session == 15)
      {
         nbDe15++;
      }
-  }
-  
+  }*/
+
   for(int i = 0; i < NB_PAPERS; i++) // check en même temps
   {
-    for(int j = i ; j< NB_PAPERS; j++)
+    for(int j = i + 1 ; j < NB_PAPERS; j++)
     {
-      if(papers[i].ID_Session == papers[j].ID_Session || papers[i].ID_Session == 15) //paper même session ou paper 15
+      if(papers[i].ID_Session == papers[j].ID_Session || papers[i].ID_Session == 15 || papers[j].ID_Session == 15) //paper même session ou paper 15
       {
-        tempDate = (*this).paper[i].startDate;
-        tempDate.hour += papers[i].duration;
-        if(tempDate.hour >24)
+        endDate = (*this).paper[i].startDate;
+        endDate.hour += papers[i].duration;
+        if(endDate.hour >= 24)
         {
-           tempDate.hour = tempDate.hour%24;
-           tempDate.day += 1;
+           endDate.hour = endDate.hour%24;
+           endDate.day += 1;
         }
-        if(tempDate.day>30)
+        if(endDate.day >= 30)
         {
-           tempDate.day = tempDate.day%30;
-           tempDate.month +=1;
+           endDate.day = endDate.day%30;
+           endDate.month +=1;
         }
-        if(!dateBeforeSecond(tempDate,(*this).paper[j].startDate))
+        //TODO : Check qu'il n'y ait pas overlapping
+        /*if(!isBeforeDate(endDate,Genome.paper[j].startDate))
         {
-          if(dateBeforeSecond((*this).paper[i].startDate,(*this).paper[j].startDate))
+          if(isBeforeDate(Genome.paper[i].startDate,Genome.paper[j].startDate))
           {
             totalScore += paperMemeSession;
             if(papers[i].ID_Session==15) //si en plus il s'agit de la session 15
               totalScore += sessionPleniere;
           }
-        }
-      } 
+        }*/
+      }
     }
   }
-  
-  for(int i = 0; i<NB_PAPERS; i++) // si Chercheur dispo
+
+  for(int i = 0; i < NB_PAPERS; i++) // si Chercheur dispo
   {
-        tempDate = (*this).paper[i].startDate;
-        int jour = tempDate.day;
-        int heure = tempDate.hour;
+        endDate = (*this).paper[i].startDate;
+        int jour = endDate.day;
+        int heure = endDate.hour;
         if(jour ==30)
         {
-           for(int j = 0; j< papers[i].dispoDay1.size() ; j++)
+           for(size_t j = 0; j< papers[i].dispoDay1.size() ; j++)
            {
               if(heure < papers[i].dispoDay1[j].startHour && heure > papers[i].dispoDay1[j].endHour)
                 totalScore += chercheurNonDispo;
@@ -355,7 +347,7 @@ float IndividualImpl::evaluate(){
         }
         if(jour == 1)
         {
-           for(int j = 0; j< papers[i].dispoDay2.size() ; j++)
+           for(size_t j = 0; j< papers[i].dispoDay2.size() ; j++)
            {
               if(heure < papers[i].dispoDay2[j].startHour && heure > papers[i].dispoDay2[j].endHour)
                 totalScore += chercheurNonDispo;
@@ -363,15 +355,15 @@ float IndividualImpl::evaluate(){
         }
         if(jour == 2)
         {
-           for(int j = 0; j< papers[i].dispoDay3.size() ; j++)
+           for(size_t j = 0; j< papers[i].dispoDay3.size() ; j++)
            {
               if(heure < papers[i].dispoDay3[j].startHour && heure > papers[i].dispoDay3[j].endHour)
                 totalScore += chercheurNonDispo;
            }
         }
   }
-  
-  for(int i = 0 ; i<numSessions.size(); i++) //vérification écart
+
+  for(size_t i = 0 ; i<numSessions.size(); i++) //vérification écart
   {
     vector<CustomDate> papiers;
     vector<int> duree;
@@ -383,36 +375,36 @@ float IndividualImpl::evaluate(){
         duree.push_back(papers[j].duration);
       }
     }
-    for(int k = 0 ; k < papiers.size()-1; k++)
+    for(size_t k = 0 ; k < papiers.size()-1; k++)
     {
-      for(int g = k ; g < papiers.size(); g++)
+      for(size_t g = k ; g < papiers.size(); g++)
       {
-        tempDate = papiers[k];
-        tempDate.hour += duree[k];
-        if(tempDate.hour >24)
+        endDate = papiers[k];
+        endDate.hour += duree[k];
+        if(endDate.hour >24)
         {
-          tempDate.hour = tempDate.hour%24;
-          tempDate.day += 1;
+          endDate.hour = endDate.hour%24;
+          endDate.day += 1;
         }
-        if(tempDate.day>30)
+        if(endDate.day>30)
         {
-          tempDate.day = tempDate.day%30;
-          tempDate.month +=1;
+          endDate.day = endDate.day%30;
+          endDate.month +=1;
         }
-        
-        tempDate2 = papiers[g];
-        tempDate2.hour += duree[g];
-        if(tempDate2.hour >24)
+
+        endDate2 = papiers[g];
+        endDate2.hour += duree[g];
+        if(endDate2.hour >24)
         {
-          tempDate2.hour = tempDate2.hour%24;
-          tempDate2.day += 1;
+          endDate2.hour = endDate2.hour%24;
+          endDate2.day += 1;
         }
-        if(tempDate2.day>30)
+        if(endDate2.day>30)
         {
-          tempDate2.day = tempDate2.day%30;
-          tempDate2.month +=1;
+          endDate2.day = endDate2.day%30;
+          endDate2.month +=1;
         }
-        int diff = differenceMinute(tempDate,tempDate2);
+        int diff = differenceMinute(endDate,endDate2);
         if(diff<120)
         {
           totalScore += diff * ecartFaible;
@@ -428,7 +420,7 @@ float IndividualImpl::evaluate(){
       }
     }
   }
-  
+
   return fitness =  totalScore;
 
   }
@@ -494,7 +486,7 @@ CIndividual* IndividualImpl::crossover(CIndividual** ps){
 
 	// ********************
 	// Problem specific part
-  	#line 220 "edtGenetic_ez.ez"
+  	#line 211 "edtGenetic_ez.ez"
 
   for(int i=0; i < NB_PAPERS; i++)
   {
@@ -541,7 +533,7 @@ unsigned IndividualImpl::mutate( float pMutationPerGene ){
 
   // ********************
   // Problem specific part
-  #line 234 "edtGenetic_ez.ez"
+  #line 225 "edtGenetic_ez.ez"
  // Must return the number of mutations
   float fMutProbPerGene=(((*EZ_current_generation)%40)/40.0)*(NB_PAPERS*.005)+.1;//.235;
   int nbMutations = 0;
